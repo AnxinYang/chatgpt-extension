@@ -1,0 +1,26 @@
+{
+  "name": "chatgpt-extension",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "build": "node esbuild.mjs",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AnxinYang/chatgpt-extension.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/AnxinYang/chatgpt-extension/issues"
+  },
+  "homepage": "https://github.com/AnxinYang/chatgpt-extension#readme",
+  "dependencies": {
+    "@webcomponents/webcomponentsjs": "^2.7.0",
+    "esbuild": "0.17.12",
+    "typescript": "^5.0.2"
+  }
+}
