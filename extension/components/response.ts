@@ -14,14 +14,38 @@ export class ChatGPTResponse extends HTMLElement {
     this.container.setAttribute("id", "chatgpt-response");
     this.container.style.height = "fit-content";
     this.container.style.overflowY = "auto";
-    this.container.style.minHeight = "100px";
     this.container.style.maxHeight = "50vh";
-    this.container.style.marginTop = "10px";
+    this.container.style.marginBottom = "1em";
     this.container.style.padding = "5px";
-    this.container.style.border = "1px solid #ccc";
+    // this.container.style.border = "1px solid #ccc";
+
+    const style = document.createElement("style");
+    style.textContent = `
+      * {
+        box-sizing: border-box;
+      }
+      #chatgpt-response::-webkit-scrollbar {
+        width: 8px;
+      }
+
+      #chatgpt-response::-webkit-scrollbar-track {
+        background-color: #f1f1f1;
+        border-radius: 4px;
+      }
+
+      #chatgpt-response::-webkit-scrollbar-thumb {
+        background-color: #888;
+        border-radius: 4px;
+      }
+
+      #chatgpt-response::-webkit-scrollbar-thumb:hover {
+        background-color: #555;
+      }
+    `;
 
     // Inject the response div into the shadow root
     if (!this.shadowRoot) return;
+    this.shadowRoot.appendChild(style);
     this.shadowRoot.appendChild(this.container);
   }
   appendMessage(message: ChatGPTMessage) {
