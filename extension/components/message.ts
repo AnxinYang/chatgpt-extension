@@ -29,6 +29,7 @@ export class ChatGPTMessage extends HTMLElement {
     this.shadowRoot.appendChild(style);
   }
   connectedCallback() {
+    this.container.scrollIntoView(false);
     if (this.type === "user") {
       this.container.textContent = this.message;
       return;

@@ -1,3 +1,5 @@
+import { getChatCompletion } from "utils/api";
+import { addToHistory } from "utils/prompt";
 import { ChatGPTMessage } from "./message";
 import { ChatGPTResponse } from "./response";
 
@@ -73,23 +75,6 @@ export class ChatGPTInput extends HTMLElement {
     this.outputTarget = target;
   }
 
-  async getResponse(message: string): Promise<string> {
-    if (!this.outputTarget) return "";
-    this.processing = true;
-    // Use a promise to fake a response from the ChatGPT API.
-    // You can replace this with your own API call.
-    const response = await new Promise<string>((resolve) => {
-      setTimeout(() => {
-        resolve(
-          "The webcomponents-bundle.js contains all of the web components polyfills and is suitable for use on any supported browser. All of the polyfill code will be loaded but each polyfill will only be used based on feature detection. The bundle includes Custom Elements, Shady DOM/CSS and generic platform polyfills (such as ES6 Promise, Constructable events, etc.) (needed by Internet Explorer 11), and Template (needed by IE 11 and Edge).The webcomponents-bundle.js is very simple to use but it does load code that is not needed on most modern browsers, slowing page load. For best performance, use the webcomponents-loader.js."
-        );
-        this.processing = false;
-      }, 5000);
-    });
-
-    return response;
-  }
-
   async sendInputToTarget() {
     if (!this.outputTarget) return;
     if (this.processing) return;
@@ -101,10 +86,11 @@ export class ChatGPTInput extends HTMLElement {
 
     this.setButtonToDisabled(true);
 
-    const res = await this.getResponse(inputText);
-    const responseMessage = new ChatGPTMessage("", "response");
-
+    const responseMessage = new ChatGPTMessage("Thinking...", "response");
     this.outputTarget.appendMessage(responseMessage);
+
+    const res = await getChatCompletion(inputText);
+    addToHistory(res);
     await responseMessage.renderWordByWord(res);
 
     this.setButtonToDisabled(false);
