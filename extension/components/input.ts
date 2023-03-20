@@ -86,11 +86,11 @@ export class ChatGPTInput extends HTMLElement {
 
     this.setButtonToDisabled(true);
 
-    const responseMessage = new ChatGPTMessage("Thinking...", "response");
+    const responseMessage = new ChatGPTMessage("...", "response");
     this.outputTarget.appendMessage(responseMessage);
 
     const res = await getChatCompletion(inputText);
-    addToHistory(res);
+    addToHistory(res, "assistant");
     await responseMessage.renderWordByWord(res);
 
     this.setButtonToDisabled(false);

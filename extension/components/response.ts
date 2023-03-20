@@ -52,6 +52,11 @@ export class ChatGPTResponse extends HTMLElement {
     if (!this.shadowRoot) return;
     this.container.appendChild(message);
   }
+
+  clear() {
+    if (!this.shadowRoot) return;
+    this.container.innerHTML = "";
+  }
 }
 
 // Define the custom response element

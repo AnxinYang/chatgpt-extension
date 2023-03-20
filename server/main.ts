@@ -1,6 +1,9 @@
 // main.ts
 import { Application, Router, config, OpenAI, oakCors } from "./deps.ts";
-
+export interface Message {
+  role: "user" | "assistant";
+  content: string;
+}
 // Load environment variables
 const env = config();
 
@@ -10,11 +13,12 @@ const openAIClient = new OpenAI(env.OPENAI_API_KEY);
 // Create a new router
 const router = new Router();
 router.post("/api/chat", async (ctx) => {
-  const { prompt }: { prompt: string } = await ctx.request.body().value;
+  const { messages }: { messages: Message[] } = await ctx.request.body().value;
   try {
     const response = await openAIClient.createChatCompletion({
       model: "gpt-3.5-turbo",
-      messages: [{ role: "user", content: prompt }],
+      messages,
+      maxTokens: 128,
     });
     const responseBodyString = JSON.stringify({
       response: response.choices[0].message.content,

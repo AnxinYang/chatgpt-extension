@@ -1,3 +1,6 @@
+import { clearHistory } from "utils/prompt";
+import { ChatGPTResponse } from "./response";
+
 export class ChatGPTWidget extends HTMLElement {
   readonly container = document.createElement("div");
   readonly contents = document.createElement("div");
@@ -14,7 +17,10 @@ export class ChatGPTWidget extends HTMLElement {
       * {
         box-sizing: border-box;
       }
-      #chatgpt-contents[data-hidden="true"]{
+      #chatgpt-container[data-hidden="true"] #chatgpt-contents{
+        display: none;
+      }
+      #chatgpt-container[data-hidden="true"] #clear-button{
         display: none;
       }
     `;
@@ -32,6 +38,7 @@ export class ChatGPTWidget extends HTMLElement {
     this.setupbuttons();
   }
   setupContainer() {
+    this.container.id = "chatgpt-container";
     this.container.style.position = "fixed";
     this.container.style.bottom = "20px";
     this.container.style.right = "20px";
@@ -48,15 +55,28 @@ export class ChatGPTWidget extends HTMLElement {
     this.buttons.style.display = "flex";
     this.buttons.style.justifyContent = "flex-end";
     this.buttons.style.marginBottom = "10px";
+    this.buttons.style.gap = "10px";
 
     const toggle = document.createElement("button");
-    this.contents.setAttribute("data-hidden", "true");
+    this.container.setAttribute("data-hidden", "true");
     toggle.textContent = "+";
     toggle.addEventListener("click", () => {
-      const isHidden = this.contents.getAttribute("data-hidden") === "true";
+      const isHidden = this.container.getAttribute("data-hidden") === "true";
       toggle.textContent = !isHidden ? "+" : "-";
-      this.contents.setAttribute("data-hidden", isHidden ? "false" : "true");
+      this.container.setAttribute("data-hidden", isHidden ? "false" : "true");
     });
+
+    // Add a clear button to clear the chat history.
+    const clear = document.createElement("button");
+    clear.id = "clear-button";
+    clear.textContent = "Clear";
+    clear.addEventListener("click", () => {
+      const responses: ChatGPTResponse | null =
+        this.container.querySelector("chatgpt-response");
+      responses?.clear();
+      clearHistory();
+    });
+    this.buttons.appendChild(clear);
     this.buttons.appendChild(toggle);
   }
 

@@ -1,15 +1,15 @@
-import { generatePrompt } from "./prompt";
+import { generateMessages } from "./prompt";
 
 export const getChatCompletion = async (message: string): Promise<string> => {
   // Send the input to the Deno server and display the response
   try {
-    const prompt = generatePrompt(message);
+    const messages = generateMessages(message);
     const response = await fetch("http://localhost:8000/api/chat", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ prompt }),
+      body: JSON.stringify({ messages }),
     });
 
     if (response.ok) {

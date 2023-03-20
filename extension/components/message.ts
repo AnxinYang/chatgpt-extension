@@ -30,10 +30,7 @@ export class ChatGPTMessage extends HTMLElement {
   }
   connectedCallback() {
     this.container.scrollIntoView(false);
-    if (this.type === "user") {
-      this.container.textContent = this.message;
-      return;
-    }
+    this.container.textContent = this.message;
   }
 
   renderWordByWord = async (message: string) => {
@@ -41,7 +38,7 @@ export class ChatGPTMessage extends HTMLElement {
     this.container.textContent = "";
 
     const words = this.message.split("");
-    const renderRate = 10; // Adjust this value to change the rendering speed (in milliseconds)
+    const renderRate = 20; // Adjust this value to change the rendering speed (in milliseconds)
 
     let currentWordIndex = 0;
 
