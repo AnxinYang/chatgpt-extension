@@ -28,6 +28,8 @@ export class ChatGPTInput extends HTMLElement {
     input.style.width = "100%";
     input.style.padding = "5px";
     input.style.marginBottom = "1em";
+    input.style.borderRadius = "4px";
+    input.style.color = "#ffffff";
     input.style.backgroundColor = "rgba(64,65,79,1)";
     input.style.border = "none";
     input.placeholder = "Type your message here...";
