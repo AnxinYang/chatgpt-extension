@@ -27,19 +27,20 @@ export const clearHistory = () => {
   history = [];
 };
 
+function removeAttributesAndScripts(htmlString: string) {
+  // Remove script tags
+  const scriptTagPattern =
+    /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi;
+  const cleanedScriptTags = htmlString.replace(scriptTagPattern, "");
+  const attributeRegex =
+    /<([a-z][a-z0-9]*)(?:\s+[a-z0-9:-]+=(?:\"[^\"]*\"|\'[^\']*\'|[^\s>]+))*\s*/gi;
+  const cleanedHtmlString = cleanedScriptTags.replace(attributeRegex, "<$1");
+  return cleanedHtmlString;
+}
+
 function getPageContent() {
-  const main = document.querySelector("main");
-
-  const elements: HTMLElement[] = Array.from(
-    (main ?? document).querySelectorAll("h1, h2, h3, h4, h5, h6, a, p")
-  );
-
-  const content = elements
-    .map((element) => element.innerText)
-    .filter((text) => text.trim().length > 0)
-    .join("|");
-  console.log(content);
-  const truncated = `${content.slice(0, 2048)}...`;
+  const content = removeAttributesAndScripts(document.body.innerText);
+  const truncated = `${content.slice(0, 4096)}...`;
 
   return truncated;
 }

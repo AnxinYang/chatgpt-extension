@@ -34,10 +34,12 @@ export class ChatGPTMessage extends HTMLElement {
   }
   resetText = (str: string = "") => {
     this.container.textContent = str;
+    this.container.scrollIntoView(false);
   };
 
   appendText = (str: string) => {
     this.container.textContent += str;
+    this.container.scrollIntoView(false);
   };
 }
 
