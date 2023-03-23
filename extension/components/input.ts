@@ -3,22 +3,6 @@ import { addToHistory } from "utils/prompt";
 import { ChatGPTMessage } from "./message";
 import { ChatGPTResponse } from "./response";
 
-export interface ChatGPTChunk {
-  id: string;
-  object: string;
-  created: number;
-  model: string;
-  choices: [
-    {
-      delta: {
-        content?: string;
-      };
-      index: 0;
-      finish_reason: "stop" | null;
-    }
-  ];
-}
-
 export class ChatGPTInput extends HTMLElement {
   outputTarget?: ChatGPTResponse;
   readonly inputElem = document.createElement("input");
@@ -104,25 +88,18 @@ export class ChatGPTInput extends HTMLElement {
 
     const responseMessage = new ChatGPTMessage("...", "response");
     this.outputTarget.appendMessage(responseMessage);
-
-    const reader = await getChatCompletion(inputText);
     let newMessage = "";
-    responseMessage.resetText();
-    while (true) {
-      const { value, done } = await reader.read();
-      if (done) break;
-      const data = value.split("\n\n");
+    let isReset = false;
 
-      data.forEach((d) => {
-        try {
-          const json = d.replace("data:", "").replaceAll("\n", "").trim();
-          const chunk: ChatGPTChunk = JSON.parse(json);
-          if (!chunk.choices[0].delta.content) return;
-          newMessage += chunk.choices[0].delta.content;
-          responseMessage.appendText(chunk.choices[0].delta.content);
-        } catch (e) {}
-      });
-    }
+    await getChatCompletion(inputText, (data) => {
+      if (!isReset) {
+        responseMessage.resetText();
+        isReset = true;
+      }
+      newMessage += data;
+      responseMessage.appendText(data);
+    });
+
     this.setButtonToDisabled(false);
     addToHistory(newMessage, "assistant");
   }
