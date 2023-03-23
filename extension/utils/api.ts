@@ -70,6 +70,7 @@ export const getChatCompletion = async (
       onMessage(message);
     }
   } catch (e) {
+    console.error(e);
     onMessage("Sorry, something went wrong.");
   }
 };
