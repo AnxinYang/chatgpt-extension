@@ -1,21 +1,28 @@
 export class ChatGPTMessage extends HTMLElement {
-  message: string;
-  container = document.createElement("div");
-  readonly type;
+  readonly message: string;
+  readonly type: string;
+  readonly container = document.createElement("div");
+
   constructor(message: string = "", type = "user") {
     super();
     this.message = message;
     this.type = type;
+
     // Attach a shadow root to the custom element
-    this.attachShadow({ mode: "open" });
+    const shadow = this.attachShadow({ mode: "open" });
 
     // Create the message div
-    this.container.style.padding = "5px 10px";
-    this.container.style.marginTop = "1.25em";
-    this.container.style.borderRadius = "4px";
-    this.container.style.backgroundColor = type === "user" ? "#4285f4" : "#ccc";
-    this.container.style.color = type === "user" ? "#ffffff" : "#000000";
-    this.container.style.whiteSpace = "pre-wrap";
+    const container = this.container;
+    container.style.cssText = `
+      padding: 5px 10px;
+      margin-top: 1.25em;
+      border-radius: 4px;
+      background-color: ${type === "user" ? "#4285f4" : "#ccc"};
+      color: ${type === "user" ? "#ffffff" : "#000000"};
+      white-space: pre-wrap;
+    `;
+    container.setAttribute("aria-label", `Message from ${type}`);
+
     const style = document.createElement("style");
     style.textContent = `
       * {
@@ -24,23 +31,24 @@ export class ChatGPTMessage extends HTMLElement {
     `;
 
     // Inject the message div into the shadow root
-    if (!this.shadowRoot) return;
-    this.shadowRoot.appendChild(this.container);
-    this.shadowRoot.appendChild(style);
+    shadow.appendChild(container);
+    shadow.appendChild(style);
   }
+
   connectedCallback() {
     this.container.scrollIntoView(false);
     this.container.textContent = this.message;
   }
-  resetText = (str: string = "") => {
+
+  resetText(str: string = "") {
     this.container.textContent = str;
     this.container.scrollIntoView(false);
-  };
+  }
 
-  appendText = (str: string) => {
+  appendText(str: string) {
     this.container.textContent += str;
     this.container.scrollIntoView(false);
-  };
+  }
 }
 
 // Define the custom message element

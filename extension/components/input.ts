@@ -71,10 +71,6 @@ export class ChatGPTInput extends HTMLElement {
     const style = document.createElement("style");
     style.textContent = `* { box-sizing: border-box; } `;
 
-    // Inject the input and submit button into the shadow root
-    shadow.innerHTML = `
-<label for="chatgpt-input">Type your message here:</label>
-`;
     container.appendChild(input);
     container.appendChild(submitButton);
     shadow.appendChild(container);
