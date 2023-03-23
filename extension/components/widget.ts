@@ -6,7 +6,9 @@ export class ChatGPTWidget extends HTMLElement {
   readonly contents = document.createElement("div");
   readonly buttons = document.createElement("div");
 
-  constructor() {
+  constructor(
+    options: { position?: string; color?: string; size?: string } = {}
+  ) {
     super();
 
     // Attach a shadow root to the custom element
@@ -23,10 +25,23 @@ export class ChatGPTWidget extends HTMLElement {
       #chatgpt-container[data-hidden="true"] #clear-button{
         display: none;
       }
+      #chatgpt-container {
+        position: ${options.position ?? "fixed"};
+        bottom: 20px;
+        right: 20px;
+        width: ${options.size ?? "fit-content"};
+        height: ${options.size ?? "fit-content"};
+        background-color: ${options.color ?? "#353740"};
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        border-radius: 4px;
+        padding: 10px;
+        z-index: 9999;
+      }
     `;
     if (!this.shadowRoot) return;
     this.shadowRoot.appendChild(style);
   }
+
   connectedCallback() {
     if (!this.shadowRoot) return;
     this.shadowRoot.appendChild(this.container);
@@ -35,29 +50,22 @@ export class ChatGPTWidget extends HTMLElement {
     this.container.appendChild(this.contents);
     this.setupContainer();
     this.setupContents();
-    this.setupbuttons();
-  }
-  setupContainer() {
-    this.container.id = "chatgpt-container";
-    this.container.style.position = "fixed";
-    this.container.style.bottom = "20px";
-    this.container.style.right = "20px";
-    this.container.style.width = "fit-content";
-    this.container.style.height = "fit-content";
-    this.container.style.backgroundColor = "#353740";
-    this.container.style.boxShadow = "0 4px 6px rgba(0, 0, 0, 0.1)";
-    this.container.style.borderRadius = "4px";
-    this.container.style.padding = "10px";
-    this.container.style.zIndex = "9999";
+    this.setupButtons();
   }
 
-  setupbuttons() {
+  setupContainer() {
+    this.container.id = "chatgpt-container";
+    this.container.setAttribute("aria-label", "Chat widget");
+  }
+
+  setupButtons() {
     this.buttons.style.display = "flex";
     this.buttons.style.justifyContent = "flex-end";
     this.buttons.style.marginBottom = "10px";
     this.buttons.style.gap = "10px";
 
     const toggle = document.createElement("button");
+    toggle.setAttribute("aria-label", "Toggle chat widget visibility");
     this.container.setAttribute("data-hidden", "true");
     toggle.textContent = "+";
     toggle.addEventListener("click", () => {
@@ -68,14 +76,17 @@ export class ChatGPTWidget extends HTMLElement {
 
     // Add a clear button to clear the chat history.
     const clear = document.createElement("button");
+    clear.setAttribute("aria-label", "Clear chat history");
     clear.id = "clear-button";
     clear.textContent = "Clear";
     clear.addEventListener("click", () => {
-      const responses: ChatGPTResponse | null =
-        this.container.querySelector("chatgpt-response");
+      const responses = this.container.querySelector(
+        "chatgpt-response"
+      ) as ChatGPTResponse;
       responses?.clear();
       clearHistory();
     });
+
     this.buttons.appendChild(clear);
     this.buttons.appendChild(toggle);
   }
