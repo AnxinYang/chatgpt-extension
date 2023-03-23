@@ -123,7 +123,7 @@ export class ChatGPTInput extends HTMLElement {
         } catch (e) {}
       });
     }
-
+    this.setButtonToDisabled(false);
     addToHistory(newMessage, "assistant");
   }
 

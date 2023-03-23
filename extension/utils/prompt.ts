@@ -1,14 +1,20 @@
 export interface Message {
-  role: "user" | "assistant";
+  role: "user" | "assistant" | "system";
   content: string;
 }
-const getMessageForCurrentTab = (): Message => {
-  return {
-    role: "user",
-    content: `The user are visiting [${
-      window.location.href
-    }], here are the content of current webpage:[${getPageContent()}]. Keep the answer short and simple.`,
-  };
+const getMessageForCurrentTab = (): Message[] => {
+  return [
+    {
+      role: "system",
+      content: `You are a helpful assistant.`,
+    },
+    {
+      role: "system",
+      content: `The user are visiting [${
+        window.location.href
+      }], here are the content of current webpage:[${getPageContent()}]. Keep the answer short and simple.`,
+    },
+  ];
 };
 
 let history: Message[] = [];
@@ -40,14 +46,14 @@ function removeAttributesAndScripts(htmlString: string) {
 
 function getPageContent() {
   const content = removeAttributesAndScripts(document.body.innerText);
-  const truncated = `${content.slice(0, 4096)}...`;
+  const truncated = `${content.slice(0, 2048)}...`;
 
   return truncated;
 }
 
 export const generateMessages = (prompt: string): Message[] => {
   const messages = [
-    getMessageForCurrentTab(),
+    ...getMessageForCurrentTab(),
     ...history,
     { role: "user", content: prompt } as Message,
   ];
