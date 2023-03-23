@@ -16,11 +16,37 @@ export interface ChatGPTChunk {
   ];
 }
 
+const parseMessageJson = (json: string): ChatGPTChunk | null => {
+  try {
+    return JSON.parse(json);
+  } catch (e) {
+    return null;
+  }
+};
+
+const readStringFromChunkString = (chunkString: string) => {
+  return chunkString.replace("data:", "").replaceAll("\n", "").trim();
+};
+
+const readMessagesFromStreamData = (data: string): string => {
+  const chunkStrings = data.split("\n\n");
+  let result = "";
+  chunkStrings.forEach((chunkString) => {
+    const json = readStringFromChunkString(chunkString);
+    const chunk = parseMessageJson(json);
+    if (!chunk) return;
+    const message = chunk.choices[0].delta.content;
+    if (!message) return;
+    result += message;
+  });
+
+  return result;
+};
+
 export const getChatCompletion = async (
   message: string,
-  onData: (data: string) => void
+  onMessage: (message: string) => void
 ): Promise<void> => {
-  // Send the input to the Deno server and display the response
   try {
     const messages = generateMessages(message);
     const response = await fetch("http://localhost:8000/api/chat", {
@@ -30,7 +56,9 @@ export const getChatCompletion = async (
       },
       body: JSON.stringify({ messages }),
     });
+
     if (!response.body) throw new Error("No response body");
+
     const reader = response.body
       .pipeThrough(new TextDecoderStream())
       .getReader();
@@ -38,19 +66,10 @@ export const getChatCompletion = async (
     while (true) {
       const { value, done } = await reader.read();
       if (done) break;
-      const data = value.split("\n\n");
-
-      data.forEach((d) => {
-        try {
-          const json = d.replace("data:", "").replaceAll("\n", "").trim();
-          const chunk: ChatGPTChunk = JSON.parse(json);
-          if (!chunk.choices[0].delta.content) return;
-          onData(chunk.choices[0].delta.content);
-        } catch (e) {}
-      });
+      const message = readMessagesFromStreamData(value);
+      onMessage(message);
     }
-  } catch (error) {
-    console.error("Error:", error);
-    throw error;
+  } catch (e) {
+    onMessage("Sorry, something went wrong.");
   }
 };

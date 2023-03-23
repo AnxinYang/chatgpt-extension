@@ -91,13 +91,13 @@ export class ChatGPTInput extends HTMLElement {
     let newMessage = "";
     let isReset = false;
 
-    await getChatCompletion(inputText, (data) => {
+    await getChatCompletion(inputText, (message) => {
       if (!isReset) {
         responseMessage.resetText();
         isReset = true;
       }
-      newMessage += data;
-      responseMessage.appendText(data);
+      newMessage += message;
+      responseMessage.appendText(message);
     });
 
     this.setButtonToDisabled(false);

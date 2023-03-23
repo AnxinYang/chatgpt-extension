@@ -1,23 +1,26 @@
 import { ChatGPTMessage } from "./message";
 
-export type sender = "user" | "response";
-
 export class ChatGPTResponse extends HTMLElement {
-  readonly container = document.createElement("div");
+  readonly container: HTMLDivElement = document.createElement("div");
+
   constructor() {
     super();
 
     // Attach a shadow root to the custom element
-    this.attachShadow({ mode: "open" });
+    const shadow = this.attachShadow({ mode: "open" });
 
     // Create the response div
     this.container.setAttribute("id", "chatgpt-response");
-    this.container.style.height = "fit-content";
-    this.container.style.overflowY = "auto";
-    this.container.style.maxHeight = "50vh";
-    this.container.style.marginBottom = "1em";
-    this.container.style.padding = "5px";
-    // this.container.style.border = "1px solid #ccc";
+    this.container.style.cssText = `
+      height: fit-content;
+      overflow-y: auto;
+      max-height: 50vh;
+      margin-bottom: 1em;
+      padding: 5px;
+      /*border: 1px solid #ccc;*/
+      scrollbar-width: thin;
+      scrollbar-color: #888 #f1f1f1;
+    `;
 
     const style = document.createElement("style");
     style.textContent = `
@@ -29,32 +32,39 @@ export class ChatGPTResponse extends HTMLElement {
       }
 
       #chatgpt-response::-webkit-scrollbar-track {
-        background-color: #f1f1f1;
+        background-color: var(--scrollbar-track-color, #f1f1f1);
         border-radius: 4px;
       }
 
       #chatgpt-response::-webkit-scrollbar-thumb {
-        background-color: #888;
+        background-color: var(--scrollbar-thumb-color, #888);
         border-radius: 4px;
       }
 
       #chatgpt-response::-webkit-scrollbar-thumb:hover {
-        background-color: #555;
+        background-color: var(--scrollbar-thumb-hover-color, #555);
       }
     `;
 
     // Inject the response div into the shadow root
-    if (!this.shadowRoot) return;
-    this.shadowRoot.appendChild(style);
-    this.shadowRoot.appendChild(this.container);
+    shadow.innerHTML = `
+      <style>
+        :host {
+          display: flex;
+          flex-direction: column;
+          gap: 1em;
+        }
+      </style>
+    `;
+    shadow.appendChild(style);
+    shadow.appendChild(this.container);
   }
+
   appendMessage(message: ChatGPTMessage) {
-    if (!this.shadowRoot) return;
     this.container.appendChild(message);
   }
 
   clear() {
-    if (!this.shadowRoot) return;
     this.container.innerHTML = "";
   }
 }
