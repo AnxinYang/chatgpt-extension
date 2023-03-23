@@ -5,70 +5,80 @@ import { ChatGPTResponse } from "./response";
 
 export class ChatGPTInput extends HTMLElement {
   outputTarget?: ChatGPTResponse;
-  readonly inputElem = document.createElement("input");
-  readonly sendButton = document.createElement("button");
+  readonly inputElem: HTMLInputElement = document.createElement("input");
+  readonly sendButton: HTMLButtonElement = document.createElement("button");
   processing = false;
+
   constructor() {
     super();
 
     // Attach a shadow root to the custom element
-    this.attachShadow({ mode: "open" });
+    const shadow = this.attachShadow({ mode: "open" });
 
     const container = document.createElement("div");
     container.setAttribute("id", "chatgpt-input-container");
-    container.style.width = "100%";
-    container.style.height = "fit-content";
-    container.style.margin = "auto";
-    container.style.display = "flex";
-    container.style.flexDirection = "column";
-    container.style.justifyContent = "space-between";
-    container.style.alignItems = "center";
+    container.style.cssText = `
+      width: 100%;
+      height: fit-content;
+      margin: auto;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      align-items: center;
+    `;
 
     // Create the input field
     const input = this.inputElem;
     input.setAttribute("id", "chatgpt-input");
-    input.style.width = "100%";
-    input.style.padding = "5px";
-    input.style.marginBottom = "1em";
-    input.style.borderRadius = "4px";
-    input.style.color = "#ffffff";
-    input.style.backgroundColor = "rgba(64,65,79,1)";
-    input.style.border = "none";
-    input.placeholder = "Type your message here...";
+    input.setAttribute("type", "text");
+    input.setAttribute("placeholder", "Type your message here...");
+    input.setAttribute("aria-label", "Type your message here");
+    input.style.cssText = `
+      width: 100%;
+      padding: 5px;
+      margin-bottom: 1em;
+      border-radius: 4px;
+      color: #ffffff;
+      background-color: rgba(64,65,79,1);
+      border: none;
+    `;
     input.addEventListener("keydown", (event) => {
       if (event.key === "Enter") {
         event.preventDefault();
         this.sendInputToTarget();
       }
     });
+
     // Create the submit button
     const submitButton = this.sendButton;
     submitButton.setAttribute("id", "chatgpt-submit");
+    submitButton.setAttribute("type", "button");
+    submitButton.setAttribute("aria-label", "Send");
     submitButton.textContent = "Send";
-    submitButton.style.display = "block";
-    submitButton.style.margin = "0 auto";
-    submitButton.style.padding = "5px 10px";
-    submitButton.style.backgroundColor = "#4285f4";
-    submitButton.style.color = "#ffffff";
-    submitButton.style.border = "none";
-    submitButton.style.borderRadius = "4px";
-
+    submitButton.style.cssText = `
+      display: block;
+      margin: 0 auto;
+      padding: 5px 10px;
+      background-color: #4285f4;
+      color: #ffffff;
+      border: none;
+      border-radius: 4px;
+    `;
     submitButton.addEventListener("click", () => {
       this.sendInputToTarget();
     });
 
     const style = document.createElement("style");
-    style.textContent = `
-      * {
-        box-sizing: border-box;
-      }
-    `;
+    style.textContent = `* { box-sizing: border-box; } `;
+
     // Inject the input and submit button into the shadow root
-    if (!this.shadowRoot) return;
+    shadow.innerHTML = `
+<label for="chatgpt-input">Type your message here:</label>
+`;
     container.appendChild(input);
     container.appendChild(submitButton);
-    this.shadowRoot.appendChild(container);
-    this.shadowRoot.appendChild(style);
+    shadow.appendChild(container);
+    shadow.appendChild(style);
   }
 
   setOutputTarget(target: ChatGPTResponse) {
@@ -78,7 +88,6 @@ export class ChatGPTInput extends HTMLElement {
   async sendInputToTarget() {
     if (!this.outputTarget) return;
     if (this.processing) return;
-
     const inputText = this.inputElem.value.trim();
     if (inputText.length === 0) return;
     this.inputElem.value = "";
@@ -91,17 +100,23 @@ export class ChatGPTInput extends HTMLElement {
     let newMessage = "";
     let isReset = false;
 
-    await getChatCompletion(inputText, (message) => {
-      if (!isReset) {
-        responseMessage.resetText();
-        isReset = true;
-      }
-      newMessage += message;
-      responseMessage.appendText(message);
-    });
+    try {
+      await getChatCompletion(inputText, (message) => {
+        if (!isReset) {
+          responseMessage.resetText();
+          isReset = true;
+        }
+        newMessage += message;
+        responseMessage.appendText(message);
+      });
+      addToHistory(newMessage, "assistant");
+    } catch (error) {
+      console.error(error);
+      responseMessage.resetText();
+      responseMessage.appendText("Sorry, something went wrong.");
+    }
 
     this.setButtonToDisabled(false);
-    addToHistory(newMessage, "assistant");
   }
 
   setButtonToDisabled(disabled: boolean) {
