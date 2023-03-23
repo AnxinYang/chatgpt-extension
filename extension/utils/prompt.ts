@@ -5,7 +5,7 @@ export interface Message {
 const getMessageForCurrentTab = (): Message => {
   return {
     role: "user",
-    content: `You are a chrome extension. The user are visiting [${
+    content: `The user are visiting [${
       window.location.href
     }], here are the content of current webpage:[${getPageContent()}]. Keep the answer short and simple.`,
   };

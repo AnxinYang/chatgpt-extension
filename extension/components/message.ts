@@ -32,30 +32,12 @@ export class ChatGPTMessage extends HTMLElement {
     this.container.scrollIntoView(false);
     this.container.textContent = this.message;
   }
+  resetText = (str: string = "") => {
+    this.container.textContent = str;
+  };
 
-  renderWordByWord = async (message: string) => {
-    this.message = message;
-    this.container.textContent = "";
-
-    const words = this.message.split("");
-    const renderRate = 20; // Adjust this value to change the rendering speed (in milliseconds)
-
-    let currentWordIndex = 0;
-
-    // Render the message word by word
-    return new Promise<void>((resolve) => {
-      const render = () => {
-        this.container.scrollIntoView(false);
-        if (currentWordIndex < words.length) {
-          this.container.textContent += words[currentWordIndex];
-          currentWordIndex++;
-          setTimeout(render, renderRate);
-        } else {
-          resolve();
-        }
-      };
-      render();
-    });
+  appendText = (str: string) => {
+    this.container.textContent += str;
   };
 }
 

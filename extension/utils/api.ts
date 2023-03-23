@@ -1,6 +1,8 @@
 import { generateMessages } from "./prompt";
 
-export const getChatCompletion = async (message: string): Promise<string> => {
+export const getChatCompletion = async (
+  message: string
+): Promise<ReadableStreamDefaultReader<string>> => {
   // Send the input to the Deno server and display the response
   try {
     const messages = generateMessages(message);
@@ -11,15 +13,14 @@ export const getChatCompletion = async (message: string): Promise<string> => {
       },
       body: JSON.stringify({ messages }),
     });
+    if (!response.body) throw new Error("No response body");
+    const reader = response.body
+      .pipeThrough(new TextDecoderStream())
+      .getReader();
 
-    if (response.ok) {
-      const data = await response.json();
-      return data.response.trim();
-    } else {
-      return "Error sending request to the server.";
-    }
+    return reader;
   } catch (error) {
     console.error("Error:", error);
-    return "Error sending request to the server.";
+    throw error;
   }
 };

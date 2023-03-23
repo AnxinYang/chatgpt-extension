@@ -1,5 +1,5 @@
 // main.ts
-import { Application, Router, config, OpenAI, oakCors } from "./deps.ts";
+import { Application, Router, config, OpenAI, oakCors, send } from "./deps.ts";
 export interface Message {
   role: "user" | "assistant";
   content: string;
@@ -15,23 +15,41 @@ const router = new Router();
 router.post("/api/chat", async (ctx) => {
   const { messages }: { messages: Message[] } = await ctx.request.body().value;
   try {
-    const response = await openAIClient.createChatCompletion({
-      model: "gpt-3.5-turbo",
-      messages,
-      maxTokens: 128,
-    });
-    const responseBodyString = JSON.stringify({
-      response: response.choices[0].message.content,
-    });
-    ctx.response.headers.set("Content-Type", "application/json");
-    ctx.response.headers.set(
-      "Content-Length",
-      responseBodyString.length.toString()
+    const requestOptions = {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${env.OPENAI_API_KEY}`,
+      },
+      body: JSON.stringify({
+        model: "gpt-3.5-turbo",
+        messages,
+        max_tokens: 100,
+        stream: true,
+      }),
+    };
+    const response = await fetch(
+      "https://api.openai.com/v1/chat/completions",
+      requestOptions
     );
-    ctx.response.body = responseBodyString;
+
+    if (!response.body) throw new Error("No response body");
+
+    // Send back the data (in chunks) as it comes in
+    ctx.response.headers.set("Content-Type", "application/json");
+    ctx.response.headers.set("Transfer-Encoding", "chunked");
+    ctx.response.headers.set("Connection", "keep-alive");
+    ctx.response.headers.set("Cache-Control", "no-cache");
+    ctx.response.headers.set("Access-Control-Allow-Origin", "*");
+    ctx.response.headers.set("Access-Control-Allow-Methods", "*");
+    ctx.response.headers.set("allow", "*");
+
+    ctx.response.status = 200;
+    ctx.response.body = response.body;
   } catch (error) {
+    console.error(error);
     ctx.response.status = 500;
-    ctx.response.body = { error: "Error processing request." };
+    ctx.response.body = { error: `Error processing request.` };
   }
 });
 
