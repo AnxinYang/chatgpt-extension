@@ -1,21 +1,11 @@
 // main.ts
-import {
-  Application,
-  Router,
-  configAsync,
-  OpenAI,
-  oakCors,
-  send,
-} from "./deps.ts";
+import { Application, Router, OpenAI, oakCors, send } from "./deps.ts";
 import { originChecker } from "./origin-checker.ts";
 import { rateLimiter } from "./rate-limiter.ts";
 export interface Message {
   role: "user" | "assistant" | "system";
   content: string;
 }
-// Load environment variables
-const env = await configAsync();
-console.log(env);
 
 // Create a new router
 const router = new Router();
@@ -26,7 +16,7 @@ router.post("/api/chat", async (ctx) => {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${env.OPENAI_API_KEY}`,
+        Authorization: `Bearer ${Deno.env.get("OPENAI_API_KEY")}`,
       },
       body: JSON.stringify({
         model: "gpt-3.5-turbo",
