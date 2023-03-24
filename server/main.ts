@@ -15,6 +15,7 @@ export interface Message {
 }
 // Load environment variables
 const env = await configAsync();
+console.log(env);
 
 // Create a new router
 const router = new Router();
