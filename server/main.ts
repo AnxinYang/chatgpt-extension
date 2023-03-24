@@ -72,7 +72,7 @@ app.use(
 );
 
 // Add the origin checker middleware
-app.use(originChecker(["chrome-extension://djinmilaiiggdjiinajkgnjpagfmjhag"]));
+app.use(originChecker(["gzip"]));
 
 // Use the router
 app.use(router.routes());
