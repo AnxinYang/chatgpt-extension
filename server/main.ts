@@ -1,5 +1,12 @@
 // main.ts
-import { Application, Router, config, OpenAI, oakCors, send } from "./deps.ts";
+import {
+  Application,
+  Router,
+  configAsync,
+  OpenAI,
+  oakCors,
+  send,
+} from "./deps.ts";
 import { originChecker } from "./origin-checker.ts";
 import { rateLimiter } from "./rate-limiter.ts";
 export interface Message {
@@ -7,10 +14,7 @@ export interface Message {
   content: string;
 }
 // Load environment variables
-const env = config();
-
-// Initialize OpenAI client
-const openAIClient = new OpenAI(env.OPENAI_API_KEY);
+const env = await configAsync();
 
 // Create a new router
 const router = new Router();
