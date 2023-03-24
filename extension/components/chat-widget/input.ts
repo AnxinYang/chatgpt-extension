@@ -86,6 +86,7 @@ export class ChatGPTInput extends HTMLElement {
     if (this.processing) return;
     const inputText = this.inputElem.value.trim();
     if (inputText.length === 0) return;
+    this.processing = true;
     this.inputElem.value = "";
     this.outputTarget.appendMessage(new ChatGPTMessage(inputText, "user"));
 
@@ -111,7 +112,7 @@ export class ChatGPTInput extends HTMLElement {
       responseMessage.resetText();
       responseMessage.appendText("Sorry, something went wrong.");
     }
-
+    this.processing = false;
     this.setButtonToDisabled(false);
   }
 
