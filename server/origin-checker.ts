@@ -3,7 +3,7 @@ import { Middleware, Context } from "https://deno.land/x/oak/mod.ts";
 
 export const originChecker = (allowedOrigins: string[]): Middleware => {
   return async (ctx: Context, next) => {
-    const origin = ctx.request.headers.get("Content-Encоding");
+    const origin = ctx.request.headers.get("X-Content-Encode");
 
     if (origin && allowedOrigins.includes(origin)) {
       await next();
