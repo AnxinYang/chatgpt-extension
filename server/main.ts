@@ -10,7 +10,7 @@ import {
 import { originChecker } from "./origin-checker.ts";
 import { rateLimiter } from "./rate-limiter.ts";
 export interface Message {
-  role: "user" | "assistant";
+  role: "user" | "assistant" | "system";
   content: string;
 }
 // Load environment variables
