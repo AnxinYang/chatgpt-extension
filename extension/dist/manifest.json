@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "ChatGPT Extension",
+  "name": "ChatExtension - A ChatGPT Extension for All Websites",
   "version": "1.0",
-  "description": "A Chrome extension to interact with ChatGPT.",
+  "description": "A Chrome extension to interact with ChatGPT for All Websites.",
   "action": {
     "default_popup": "popup.html",
     "default_icon": {

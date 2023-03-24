@@ -16,7 +16,7 @@ export interface ChatGPTChunk {
   ];
 }
 
-const apiEndpoint = "http://localhost:8000/api/chat";
+const apiEndpoint = "https://chatgpt-extension.deno.dev/api/chat";
 
 const parseMessageJson = (json: string): ChatGPTChunk | null => {
   try {
@@ -55,6 +55,7 @@ export const getChatCompletion = async (
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        "X-Content-Encode": "gzip",
       },
       body: JSON.stringify({ messages }),
     });
