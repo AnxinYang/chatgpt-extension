@@ -5,6 +5,7 @@ export class ChatGPTWidget extends HTMLElement {
   readonly container = document.createElement("div");
   readonly contents = document.createElement("div");
   readonly buttons = document.createElement("div");
+  readonly ads = document.createElement("div");
 
   constructor(
     options: { position?: string; color?: string; size?: string } = {}
@@ -18,6 +19,16 @@ export class ChatGPTWidget extends HTMLElement {
     style.textContent = `
       * {
         box-sizing: border-box;
+      }
+      * button {
+        cursor: pointer;
+        border: none;
+        color: white;
+        background: #6e6e80;
+        border-radius: 4px;
+      }
+      #chatgpt-container[data-hidden="true"] #my-ads{
+        display: none;
       }
       #chatgpt-container[data-hidden="true"] #chatgpt-contents{
         display: none;
@@ -48,14 +59,34 @@ export class ChatGPTWidget extends HTMLElement {
 
     this.container.appendChild(this.buttons);
     this.container.appendChild(this.contents);
+    this.container.appendChild(this.ads);
     this.setupContainer();
     this.setupContents();
     this.setupButtons();
+    this.setupAds();
   }
 
   setupContainer() {
     this.container.id = "chatgpt-container";
     this.container.setAttribute("aria-label", "Chat widget");
+  }
+
+  setupAds() {
+    this.ads.id = "my-ads";
+    this.ads.style.width = "100%";
+    this.ads.style.fontSize = "0.75em";
+    this.ads.style.marginTop = "10px";
+    const buyMeACoffee = document.createElement("a");
+    buyMeACoffee.setAttribute(
+      "href",
+      "https://www.buymeacoffee.com/anxinyang1E"
+    );
+    buyMeACoffee.setAttribute("target", "_blank");
+
+    buyMeACoffee.style.color = "#eee";
+    buyMeACoffee.innerText = "Buy me a coffee, if you like this project.";
+
+    this.ads.appendChild(buyMeACoffee);
   }
 
   setupButtons() {
@@ -87,8 +118,18 @@ export class ChatGPTWidget extends HTMLElement {
       clearHistory();
     });
 
+    // Add a button to remove the chat widget.
+    const remove = document.createElement("button");
+    remove.setAttribute("aria-label", "Remove chat widget");
+    remove.textContent = "X";
+    remove.style.background = "#8d2c2c";
+    remove.addEventListener("click", () => {
+      this.container.remove();
+    });
+
     this.buttons.appendChild(clear);
     this.buttons.appendChild(toggle);
+    this.buttons.appendChild(remove);
   }
 
   setupContents() {

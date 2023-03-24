@@ -2,24 +2,29 @@ export interface Message {
   role: "user" | "assistant" | "system";
   content: string;
 }
-const getMessageForCurrentTab = (): Message[] => {
+
+const getMessageForCurrentTab = (): readonly Message[] => {
   return [
     {
       role: "system",
-      content: `You are a helpful assistant.`,
+      content:
+        "You are a helpful chrome extension that help people read webpage.",
     },
     {
       role: "system",
-      content: `The user are visiting [${
+      content: `The user is visiting [${
         window.location.href
-      }], here are the content of current webpage:[${getPageContent()}]. Keep the answer short and simple.`,
+      }], here is the content of the current webpage: [${getPageContent()}]. Keep the answer short and simple.`,
     },
   ];
 };
 
 let history: Message[] = [];
 
-export const addToHistory = (message: string, role: "user" | "assistant") => {
+export const addToHistory = (
+  message: string,
+  role: "user" | "assistant"
+): void => {
   history.push({
     role,
     content: message,
@@ -29,33 +34,29 @@ export const addToHistory = (message: string, role: "user" | "assistant") => {
   }
 };
 
-export const clearHistory = () => {
+export const clearHistory = (): void => {
   history = [];
 };
 
-function removeAttributesAndScripts(htmlString: string) {
-  // Remove script tags
-  const scriptTagPattern =
-    /<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi;
+const stripAttributesAndScripts = (htmlString: string): string => {
+  const scriptTagPattern = /<script\b[^<]*<\/script>/gi;
+  const attributeRegex = /<([a-z][a-z0-9]*)\b[^>]*>/gi;
   const cleanedScriptTags = htmlString.replace(scriptTagPattern, "");
-  const attributeRegex =
-    /<([a-z][a-z0-9]*)(?:\s+[a-z0-9:-]+=(?:\"[^\"]*\"|\'[^\']*\'|[^\s>]+))*\s*/gi;
-  const cleanedHtmlString = cleanedScriptTags.replace(attributeRegex, "<$1");
+  const cleanedHtmlString = cleanedScriptTags.replace(attributeRegex, "<$1>");
   return cleanedHtmlString;
-}
+};
 
-function getPageContent() {
-  const content = removeAttributesAndScripts(document.body.innerText);
+const getPageContent = (): string => {
+  const content = stripAttributesAndScripts(document.body.innerText);
   const truncated = `${content.slice(0, 2048)}...`;
-
   return truncated;
-}
+};
 
 export const generateMessages = (prompt: string): Message[] => {
-  const messages = [
+  const messages: Message[] = [
     ...getMessageForCurrentTab(),
     ...history,
-    { role: "user", content: prompt } as Message,
+    { role: "user", content: prompt },
   ];
   return messages;
 };

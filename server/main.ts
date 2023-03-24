@@ -1,5 +1,7 @@
 // main.ts
 import { Application, Router, config, OpenAI, oakCors, send } from "./deps.ts";
+import { originChecker } from "./origin-checker.ts";
+import { rateLimiter } from "./rate-limiter.ts";
 export interface Message {
   role: "user" | "assistant";
   content: string;
@@ -56,6 +58,17 @@ router.post("/api/chat", async (ctx) => {
 // Create a new application
 const app = new Application();
 app.use(oakCors());
+
+// Add the rate limiter middleware
+app.use(
+  rateLimiter({
+    maxRequests: 5, // Maximum number of requests allowed in the time frame
+    windowMs: 60 * 1000, // Time frame in milliseconds (60 * 1000 ms = 1 minute)
+  })
+);
+
+// Add the origin checker middleware
+app.use(originChecker(["chrome-extension://djinmilaiiggdjiinajkgnjpagfmjhag"]));
 
 // Use the router
 app.use(router.routes());

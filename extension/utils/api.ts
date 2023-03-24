@@ -16,6 +16,8 @@ export interface ChatGPTChunk {
   ];
 }
 
+const apiEndpoint = "http://localhost:8000/api/chat";
+
 const parseMessageJson = (json: string): ChatGPTChunk | null => {
   try {
     return JSON.parse(json);
@@ -49,14 +51,16 @@ export const getChatCompletion = async (
 ): Promise<void> => {
   try {
     const messages = generateMessages(message);
-    const response = await fetch("http://localhost:8000/api/chat", {
+    const response = await fetch(apiEndpoint, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({ messages }),
     });
-
+    if (response.status === 429) {
+      onMessage("Too many requests, please try again later.");
+    }
     if (!response.body) throw new Error("No response body");
 
     const reader = response.body
