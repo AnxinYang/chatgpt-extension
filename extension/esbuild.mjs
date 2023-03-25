@@ -2,6 +2,7 @@ import * as esbuild from "esbuild";
 const config = {
   entryPoints: ["contentScript.ts"],
   bundle: true,
+  minify: true,
   outdir: "dist",
 };
 
