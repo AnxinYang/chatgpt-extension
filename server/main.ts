@@ -21,7 +21,7 @@ router.post("/api/chat", async (ctx) => {
       body: JSON.stringify({
         model: "gpt-3.5-turbo",
         messages,
-        max_tokens: 100,
+        max_tokens: 200,
         stream: true,
       }),
     };
