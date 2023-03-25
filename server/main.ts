@@ -72,4 +72,5 @@ app.use(router.allowedMethods());
 // Start the server
 const port = 8000;
 console.log(`Server listening on port ${port}`);
+console.log("Max tokens: ", Deno.env.get("MAX_TOKENS") || "100");
 await app.listen({ port });
