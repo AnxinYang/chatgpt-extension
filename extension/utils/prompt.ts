@@ -7,14 +7,18 @@ const getMessageForCurrentTab = (): readonly Message[] => {
   return [
     {
       role: "system",
-      content:
-        "You are a helpful chrome extension that help people read webpage.",
+      content: "You are a charming AI assistant that help people read webpage.",
     },
     {
       role: "system",
       content: `The user is visiting [${
         window.location.href
       }], here is the content of the current webpage: [${getPageContent()}]. Keep the answer short and simple.`,
+    },
+    {
+      role: "system",
+      content:
+        "If the information is not available on page, use the best of your knowledge to answer.",
     },
   ];
 };
@@ -48,7 +52,7 @@ const stripAttributesAndScripts = (htmlString: string): string => {
 
 const getPageContent = (): string => {
   const content = stripAttributesAndScripts(document.body.innerText);
-  const truncated = `${content.slice(0, 2048)}...`;
+  const truncated = `${content.slice(0, 4096)}...`;
   return truncated;
 };
 
