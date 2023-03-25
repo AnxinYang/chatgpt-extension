@@ -21,7 +21,7 @@ router.post("/api/chat", async (ctx) => {
       body: JSON.stringify({
         model: "gpt-3.5-turbo",
         messages,
-        max_tokens: Deno.env.get("MAX_TOKENS") || 100,
+        max_tokens: +(Deno.env.get("MAX_TOKENS") || 100),
         stream: true,
       }),
     };
