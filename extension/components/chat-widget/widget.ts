@@ -42,7 +42,9 @@ export class ChatGPTWidget extends HTMLElement {
         right: 20px;
         width: ${options.size ?? "fit-content"};
         height: ${options.size ?? "fit-content"};
-        background-color: ${options.color ?? "#353740"};
+        background-color: ${options.color ?? "rgb(53 55 64 / 50%)"};
+        backdrop-filter: blur(5px);
+        -webkit-backdrop-filter: blur(5px); /* For Safari */
         box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         border-radius: 4px;
         padding: 10px;
