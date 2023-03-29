@@ -99,7 +99,7 @@ app.use(oakCors());
 // Add the rate limiter middleware
 app.use(
   rateLimiter({
-    maxRequests: 5, // Maximum number of requests allowed in the time frame
+    maxRequests: 25, // Maximum number of requests allowed in the time frame
     windowMs: 60 * 1000, // Time frame in milliseconds (60 * 1000 ms = 1 minute)
   })
 );
