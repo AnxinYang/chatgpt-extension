@@ -52,6 +52,10 @@ router.post("/api/chat", async (ctx) => {
 
 router.post("/api/summary", async (ctx) => {
   const { messages }: { messages: Message[] } = await ctx.request.body().value;
+  messages.push({
+    role: "user",
+    content: "Summarize above conversation.",
+  });
   try {
     const requestOptions = {
       method: "POST",
