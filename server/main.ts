@@ -111,4 +111,5 @@ app.use(router.allowedMethods());
 const port = 8000;
 console.log(`Server listening on port ${port}`);
 console.log("Max tokens: ", Deno.env.get("MAX_TOKENS") || "100");
+console.log("Max memory: ", Deno.env.get("MAX_MEMORY") || "500");
 await app.listen({ port });
