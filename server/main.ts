@@ -71,7 +71,12 @@ router.post("/api/summary", async (ctx) => {
       requestOptions
     );
 
-    if (!response.body) throw new Error("No response body");
+    if (response.ok) {
+      const data = await response.json();
+      return data.response.trim();
+    } else {
+      return "Error sending request to the server.";
+    }
 
     // Send back the data (in chunks) as it comes in
     ctx.response.headers.set("Content-Type", "application/json");
