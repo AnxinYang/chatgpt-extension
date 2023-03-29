@@ -33,6 +33,8 @@ export class ChatGPTInput extends HTMLElement {
     input.setAttribute("type", "text");
     input.setAttribute("placeholder", "Type your message here...");
     input.setAttribute("aria-label", "Type your message here");
+    input.setAttribute("autocomplete", "off");
+
     input.style.cssText = `
       width: 100%;
       padding: 5px;
