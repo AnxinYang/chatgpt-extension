@@ -1,3 +1,5 @@
+import { getChatSummary } from "./api";
+
 export interface Message {
   role: "user" | "assistant" | "system";
   content: string;
@@ -20,6 +22,11 @@ const getMessageForCurrentTab = (): readonly Message[] => {
       content:
         "If the information is not available on page, use the best of your knowledge to answer.",
     },
+    {
+      role: "system",
+      content:
+        "Always answer in the last language that the user used in prompt.",
+    },
   ];
 };
 
@@ -33,7 +40,22 @@ export const addToHistory = (
     role,
     content: message,
   });
-  if (history.length > 10) {
+  if (role === "assistant" && history.length > 10) {
+    getChatSummary(history)
+      .then((summary) => {
+        history = [
+          {
+            role: "system",
+            content: `Here is a summary of the conversation so far: ${summary}`,
+          },
+        ];
+      })
+      .catch((error) => {
+        console.log("Failed to get summary", error);
+        history.shift();
+      });
+  }
+  if (history.length > 15) {
     history.shift();
   }
 };

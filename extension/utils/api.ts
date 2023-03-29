@@ -1,4 +1,4 @@
-import { generateMessages } from "./prompt";
+import { generateMessages, Message } from "./prompt";
 
 export interface ChatGPTChunk {
   id: string;
@@ -17,6 +17,7 @@ export interface ChatGPTChunk {
 }
 
 const apiEndpoint = "https://chatgpt-extension.deno.dev/api/chat";
+const apiEndpointSummary = "https://chatgpt-extension.deno.dev/api/summary";
 
 const parseMessageJson = (json: string): ChatGPTChunk | null => {
   try {
@@ -77,5 +78,34 @@ export const getChatCompletion = async (
   } catch (e) {
     console.error(e);
     onMessage("Sorry, something went wrong.");
+  }
+};
+
+// Get Chat Summary
+
+export const getChatSummary = async (
+  messages: Message[]
+): Promise<string | void> => {
+  const response = await fetch(apiEndpointSummary, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "X-Content-Encode": "gzip",
+    },
+    body: JSON.stringify({ messages }),
+  });
+  if (response.status === 429) {
+    console.error("Too many requests, please try again later.");
+  }
+  if (!response.body) throw new Error("No response body");
+  const reader = response.body.pipeThrough(new TextDecoderStream()).getReader();
+  let json = "";
+
+  while (true) {
+    const { value, done } = await reader.read();
+    if (done) {
+      return JSON.parse(json).choices[0].message.content;
+    }
+    json += value;
   }
 };
