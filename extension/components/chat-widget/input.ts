@@ -45,6 +45,7 @@ export class ChatGPTInput extends HTMLElement {
       border: none;
     `;
     input.addEventListener("keydown", (event) => {
+      event.stopPropagation();
       if (event.key === "Enter") {
         event.preventDefault();
         this.sendInputToTarget();
