@@ -1,13 +1,15 @@
 import { RouterContext } from "https://deno.land/x/oak@v12.1.0/router.ts";
-import { Message } from "../types.ts";
+import { ClientMessage, Message } from "../types.ts";
 
 export default async function getChatSummary(
   ctx: RouterContext<"/api/summary">
 ) {
-  const { messages }: { messages: Message[] } = await ctx.request.body().value;
+  const { messages }: { messages: ClientMessage[] } = await ctx.request.body()
+    .value;
   messages.push({
     role: "user",
     content: "Summarize above conversation.",
+    tokenUsage: 0,
   });
   try {
     const requestOptions = {
@@ -18,7 +20,12 @@ export default async function getChatSummary(
       },
       body: JSON.stringify({
         model: "gpt-3.5-turbo",
-        messages,
+        messages: messages.map((message) => {
+          return {
+            role: message.role,
+            content: message.content,
+          };
+        }),
         max_tokens: +(Deno.env.get("MAX_MEMORY") || 500),
         stream: false,
       }),
