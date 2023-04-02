@@ -11,6 +11,7 @@ if (process.env.NODE_ENV === "production") {
   await esbuild.build(config);
 } else {
   console.log("Building for development");
+  config.minify = false;
   const ctx = await esbuild.context(config);
   await ctx.watch();
 }

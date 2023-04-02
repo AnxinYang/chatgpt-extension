@@ -1,4 +1,4 @@
-import { generateMessages, Message } from "./prompt";
+import { Message, generateMessages } from "./prompt";
 
 export interface ChatGPTChunk {
   id: string;
@@ -49,36 +49,34 @@ const readMessagesFromStreamData = (data: string): string => {
 export const getChatCompletion = async (
   message: string,
   onMessage: (message: string) => void
-): Promise<void> => {
-  try {
-    const messages = generateMessages(message);
-    const response = await fetch(apiEndpoint, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-Content-Encode": "gzip",
-      },
-      body: JSON.stringify({ messages }),
-    });
-    if (response.status === 429) {
-      onMessage("Too many requests, please try again later.");
-    }
-    if (!response.body) throw new Error("No response body");
-
-    const reader = response.body
-      .pipeThrough(new TextDecoderStream())
-      .getReader();
-
-    while (true) {
-      const { value, done } = await reader.read();
-      if (done) break;
-      const message = readMessagesFromStreamData(value);
-      onMessage(message);
-    }
-  } catch (e) {
-    console.error(e);
-    onMessage("Sorry, something went wrong.");
+): Promise<string> => {
+  const messages = generateMessages(message);
+  const response = await fetch(apiEndpoint, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "X-Content-Encode": "gzip",
+    },
+    body: JSON.stringify({ messages }),
+  });
+  if (response.status === 429) {
+    throw new Error("Too many requests, please try again later.");
   }
+  if (!response.body) throw new Error("Sorry, something went wrong.");
+
+  const reader = response.body.pipeThrough(new TextDecoderStream()).getReader();
+
+  let newMessage = "";
+
+  while (true) {
+    const { value, done } = await reader.read();
+    if (done) break;
+    const message = readMessagesFromStreamData(value);
+    newMessage += message;
+    onMessage(message);
+  }
+
+  return newMessage;
 };
 
 // Get Chat Summary

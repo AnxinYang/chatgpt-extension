@@ -20,7 +20,8 @@
   },
   "homepage": "https://github.com/AnxinYang/chatgpt-extension#readme",
   "dependencies": {
-    "@webcomponents/webcomponentsjs": "^2.7.0"
+    "@webcomponents/webcomponentsjs": "^2.7.0",
+    "gpt3-tokenizer": "^1.1.5"
   },
   "devDependencies": {
     "cross-env": "^7.0.3",
