@@ -1,12 +1,14 @@
 import { getChatCompletion } from "utils/api";
-import { addToHistory } from "utils/prompt";
+import { addToHistory, getCurrentTokenUsage } from "utils/prompt";
 import { ChatGPTMessage } from "./message";
 import { ChatGPTResponse } from "./response";
+import { MAX_MEMORY_TOKENS } from "utils/constants";
 
 export class ChatGPTInput extends HTMLElement {
   outputTarget?: ChatGPTResponse;
   readonly inputElem: HTMLInputElement = document.createElement("input");
   readonly sendButton: HTMLButtonElement = document.createElement("button");
+  readonly memoryUsageElem: HTMLDivElement = document.createElement("div");
   processing = false;
 
   constructor() {
@@ -38,7 +40,7 @@ export class ChatGPTInput extends HTMLElement {
     input.style.cssText = `
       width: 100%;
       padding: 5px;
-      margin-bottom: 1em;
+      margin-bottom: 0.25em;
       border-radius: 4px;
       color: #ffffff;
       background-color: rgba(64,65,79,1);
@@ -51,6 +53,18 @@ export class ChatGPTInput extends HTMLElement {
         this.sendInputToTarget();
       }
     });
+
+    // Create memory usage indicator
+    const memoryUsage = this.memoryUsageElem;
+    memoryUsage.setAttribute("id", "chatgpt-memory-usage");
+    memoryUsage.style.cssText = `
+      width: 100%;
+      height: fit-content;
+      font-size: 0.8em;
+      color: #eee;
+      text-align: left;
+      margin-bottom: 0.25em;
+    `;
 
     // Create the submit button
     const submitButton = this.sendButton;
@@ -75,6 +89,7 @@ export class ChatGPTInput extends HTMLElement {
     style.textContent = `* { box-sizing: border-box; } `;
 
     container.appendChild(input);
+    container.appendChild(memoryUsage);
     container.appendChild(submitButton);
     shadow.appendChild(container);
     shadow.appendChild(style);
@@ -108,6 +123,9 @@ export class ChatGPTInput extends HTMLElement {
         responseMessage.appendText(message);
       });
       addToHistory(newMessage, "assistant");
+      this.memoryUsageElem.innerText = `Memory usage: ${Math.round(
+        (getCurrentTokenUsage() * 100) / MAX_MEMORY_TOKENS
+      )}%`;
     } catch (error) {
       responseMessage.resetText();
       responseMessage.appendText(

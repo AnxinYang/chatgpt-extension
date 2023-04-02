@@ -1,10 +1,15 @@
 import { getChatSummary } from "./api";
+import { MAX_MEMORY_TOKENS } from "./constants";
 import { getPageContent } from "./page/get-page-content";
 import { getSystemMsgs } from "./system/get-system-msgs";
 import { getTokenizedString } from "./system/get-tokenized-string";
 import { Message } from "./types";
 
 let history: Message[] = [];
+
+export const getCurrentTokenUsage = (): number => {
+  return history.reduce((acc, curr) => acc + curr.tokenUsage, 0);
+};
 
 export const addToHistory = (
   message: string,
@@ -16,8 +21,8 @@ export const addToHistory = (
     tokenUsage: getTokenizedString(message).encode.bpe.length,
   });
 
-  const tokenUsage = history.reduce((acc, curr) => acc + curr.tokenUsage, 0);
-  if (tokenUsage > 2000) {
+  const tokenUsage = getCurrentTokenUsage();
+  if (tokenUsage > MAX_MEMORY_TOKENS) {
     getChatSummary(history)
       .then((summary) => {
         const prompt = `Here is a summary of the conversation so far: ${summary}`;
