@@ -92,29 +92,29 @@ export class ChatGPTInput extends HTMLElement {
     this.processing = true;
     this.inputElem.value = "";
     this.outputTarget.appendMessage(new ChatGPTMessage(inputText, "user"));
-
+    addToHistory(inputText, "user");
     this.setButtonToDisabled(true);
 
     const responseMessage = new ChatGPTMessage("...", "response");
     this.outputTarget.appendMessage(responseMessage);
-    let newMessage = "";
     let isReset = false;
 
     try {
-      await getChatCompletion(inputText, (message) => {
+      const newMessage = await getChatCompletion(inputText, (message) => {
         if (!isReset) {
           responseMessage.resetText();
           isReset = true;
         }
-        newMessage += message;
         responseMessage.appendText(message);
       });
       addToHistory(newMessage, "assistant");
     } catch (error) {
-      console.error(error);
       responseMessage.resetText();
-      responseMessage.appendText("Sorry, something went wrong.");
+      responseMessage.appendText(
+        "Sorry, I'm having trouble connecting to the server."
+      );
     }
+
     this.processing = false;
     this.setButtonToDisabled(false);
   }
