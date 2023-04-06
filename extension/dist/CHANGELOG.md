@@ -1,4 +1,7 @@
-## Update 1.2.1
+### Update 1.2.2
+- Removed unused permisson.
+
+### Update 1.2.1
 - Display current memeory usage.
 
 ### Update 1.2.0
