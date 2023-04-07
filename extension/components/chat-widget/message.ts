@@ -17,7 +17,7 @@ export class ChatGPTMessage extends HTMLElement {
     const container = this.container;
     container.style.cssText = `
       padding: 5px 10px;
-      margin-top: 1.25em;
+      margin: 0.5em 0;
       border-radius: 4px;
       background-color: ${type === "user" ? "#4285f4" : "#ccc"};
       color: ${type === "user" ? "#ffffff" : "#000000"};

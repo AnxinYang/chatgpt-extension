@@ -15,9 +15,6 @@ export class ChatGPTResponse extends HTMLElement {
       height: fit-content;
       overflow-y: auto;
       max-height: 50vh;
-      margin-bottom: 1em;
-      padding: 5px;
-      /*border: 1px solid #ccc;*/
       scrollbar-width: thin;
       scrollbar-color: #888 #f1f1f1;
     `;
@@ -28,11 +25,11 @@ export class ChatGPTResponse extends HTMLElement {
         box-sizing: border-box;
       }
       #chatgpt-response::-webkit-scrollbar {
-        width: 8px;
+        width: 4px;
       }
 
       #chatgpt-response::-webkit-scrollbar-track {
-        background-color: var(--scrollbar-track-color, #f1f1f1);
+        background-color: var(--scrollbar-track-color, transparent);
         border-radius: 4px;
       }
 
