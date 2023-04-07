@@ -64,6 +64,10 @@ export class ChatGPTResponse extends HTMLElement {
     this.container.appendChild(message);
   }
 
+  scrollToBottom() {
+    this.container.scrollTop = this.container.scrollHeight;
+  }
+
   clear() {
     this.container.innerHTML = "";
   }

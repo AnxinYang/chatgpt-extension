@@ -2,7 +2,7 @@ import { getChatSummary } from "./api";
 import { MAX_MEMORY_TOKENS } from "./constants";
 import { getPageContent } from "./page/get-page-content";
 import { getSystemMsgs } from "./system/get-system-msgs";
-import { getTokenizedString } from "./system/get-tokenized-string";
+import { getStringTokenSize } from "./system/get-tokenized-string";
 import { Message } from "./types";
 
 let history: Message[] = [];
@@ -18,7 +18,7 @@ export const addToHistory = (
   history.push({
     role,
     content: message,
-    tokenUsage: getTokenizedString(message).encode.bpe.length,
+    tokenUsage: getStringTokenSize(message),
   });
 
   const tokenUsage = getCurrentTokenUsage();
@@ -30,7 +30,7 @@ export const addToHistory = (
           {
             role: "system",
             content: prompt,
-            tokenUsage: getTokenizedString(prompt).encode.bpe.length,
+            tokenUsage: getStringTokenSize(prompt),
           },
         ];
       })
@@ -55,7 +55,7 @@ export const generateMessages = (prompt: string): Message[] => {
     {
       role: "user",
       content: prompt,
-      tokenUsage: getTokenizedString(prompt).encode.bpe.length,
+      tokenUsage: getStringTokenSize(prompt),
     },
   ];
   return messages;

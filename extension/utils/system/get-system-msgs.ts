@@ -1,5 +1,5 @@
 import { Message } from "utils/types";
-import { getTokenizedString } from "./get-tokenized-string";
+import { getStringTokenSize } from "./get-tokenized-string";
 
 const systemPrompts = [
   "You are a charming AI assistant that help people read webpage.",
@@ -11,7 +11,7 @@ const getSystemMsgs = (): readonly Message[] => {
   const messages: Message[] = systemPrompts.map((prompt) => ({
     role: "system",
     content: prompt,
-    tokenUsage: getTokenizedString(prompt).encode.bpe.length,
+    tokenUsage: getStringTokenSize(prompt),
   }));
 
   return messages;

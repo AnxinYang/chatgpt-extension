@@ -1,3 +1,6 @@
+### Update 1.2.3
+- Added a max token size for input.
+
 ### Update 1.2.2
 - Removed unused permisson.
 

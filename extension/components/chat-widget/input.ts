@@ -2,14 +2,18 @@ import { getChatCompletion } from "utils/api";
 import { addToHistory, getCurrentTokenUsage } from "utils/prompt";
 import { ChatGPTMessage } from "./message";
 import { ChatGPTResponse } from "./response";
-import { MAX_MEMORY_TOKENS } from "utils/constants";
+import { MAX_INPUT_TOKENS, MAX_MEMORY_TOKENS } from "utils/constants";
+import { getTokenizedString } from "utils/system/get-tokenized-string";
 
 export class ChatGPTInput extends HTMLElement {
   outputTarget?: ChatGPTResponse;
   readonly inputElem: HTMLInputElement = document.createElement("input");
   readonly sendButton: HTMLButtonElement = document.createElement("button");
-  readonly memoryUsageElem: HTMLDivElement = document.createElement("div");
+  readonly memoryUsageElem: HTMLSpanElement = document.createElement("span");
+  readonly tokenUsageElem: HTMLSpanElement = document.createElement("span");
+  readonly statusContainer: HTMLDivElement = document.createElement("div");
   processing = false;
+  calculationTimer?: number;
 
   constructor() {
     super();
@@ -50,20 +54,43 @@ export class ChatGPTInput extends HTMLElement {
       event.stopPropagation();
       if (event.key === "Enter") {
         event.preventDefault();
-        this.sendInputToTarget();
+        this.handleInput();
       }
+      this.updataTokenUsage();
     });
 
     // Create memory usage indicator
     const memoryUsage = this.memoryUsageElem;
     memoryUsage.setAttribute("id", "chatgpt-memory-usage");
     memoryUsage.style.cssText = `
-      width: 100%;
       height: fit-content;
       font-size: 0.8em;
       color: #eee;
       text-align: left;
       margin-bottom: 0.25em;
+      white-space: nowrap;
+    `;
+
+    // Create token usage indicator
+    const tokenUsage = this.tokenUsageElem;
+    tokenUsage.setAttribute("id", "chatgpt-token-usage");
+    tokenUsage.style.cssText = `
+      height: fit-content;
+      font-size: 0.8em;
+      color: #eee;
+      text-align: left;
+      margin-bottom: 0.25em;
+      white-space: nowrap;
+  `;
+
+    // Create the status container
+    const statusContainer = this.statusContainer;
+    statusContainer.setAttribute("id", "chatgpt-status-container");
+    statusContainer.style.cssText = `
+    width: 100%;
+    height: fit-content;
+    display: flex;
+    justify-content: space-between;
     `;
 
     // Create the submit button
@@ -82,14 +109,16 @@ export class ChatGPTInput extends HTMLElement {
       border-radius: 4px;
     `;
     submitButton.addEventListener("click", () => {
-      this.sendInputToTarget();
+      this.handleInput();
     });
 
     const style = document.createElement("style");
     style.textContent = `* { box-sizing: border-box; } `;
 
     container.appendChild(input);
-    container.appendChild(memoryUsage);
+    statusContainer.appendChild(memoryUsage);
+    statusContainer.appendChild(tokenUsage);
+    container.appendChild(statusContainer);
     container.appendChild(submitButton);
     shadow.appendChild(container);
     shadow.appendChild(style);
@@ -99,51 +128,75 @@ export class ChatGPTInput extends HTMLElement {
     this.outputTarget = target;
   }
 
-  async sendInputToTarget() {
-    if (!this.outputTarget) return;
+  appendUserInputToTarget(inputText: string) {
+    if (!this.outputTarget) throw new Error("Output target not set");
+    const tokenizedString = getTokenizedString(inputText);
+    if (tokenizedString.encode.bpe.length > MAX_INPUT_TOKENS) {
+      throw new Error("Your input is too long. Please shorten it.");
+    }
+    this.outputTarget.appendMessage(new ChatGPTMessage(inputText, "user"));
+    addToHistory(inputText, "user");
+    this.inputElem.value = "";
+  }
+
+  async appendChatCompletionToTarget(inputText: string) {
+    const responseMessage = new ChatGPTMessage("...", "assistant");
+    this.outputTarget?.appendMessage(responseMessage);
+    let isReset = false;
+
+    const newMessage = await getChatCompletion(inputText, (message) => {
+      if (!isReset) {
+        responseMessage.resetText();
+        isReset = true;
+      }
+      responseMessage.appendText(message);
+      this.outputTarget?.scrollToBottom();
+    });
+    addToHistory(newMessage, "assistant");
+  }
+
+  updataTokenUsage() {
+    if (this.calculationTimer) clearTimeout(this.calculationTimer);
+    this.calculationTimer = setTimeout(() => {
+      const tokenizedString = getTokenizedString(this.inputElem.value);
+      this.tokenUsageElem.innerText = `Token: ${tokenizedString.encode.bpe.length}/${MAX_INPUT_TOKENS}`;
+    }, 1000);
+  }
+
+  updateMemoryUsage() {
+    this.memoryUsageElem.innerText = `Memory usage: ${Math.round(
+      (getCurrentTokenUsage() * 100) / MAX_MEMORY_TOKENS
+    )}%`;
+  }
+
+  async handleInput() {
     if (this.processing) return;
     const inputText = this.inputElem.value.trim();
     if (inputText.length === 0) return;
-    this.processing = true;
-    this.inputElem.value = "";
-    this.outputTarget.appendMessage(new ChatGPTMessage(inputText, "user"));
-    addToHistory(inputText, "user");
-    this.setButtonToDisabled(true);
-
-    const responseMessage = new ChatGPTMessage("...", "response");
-    this.outputTarget.appendMessage(responseMessage);
-    let isReset = false;
-
     try {
-      const newMessage = await getChatCompletion(inputText, (message) => {
-        if (!isReset) {
-          responseMessage.resetText();
-          isReset = true;
-        }
-        responseMessage.appendText(message);
-      });
-      addToHistory(newMessage, "assistant");
-      this.memoryUsageElem.innerText = `Memory usage: ${Math.round(
-        (getCurrentTokenUsage() * 100) / MAX_MEMORY_TOKENS
-      )}%`;
+      this.setInputToDisabled(true);
+      this.appendUserInputToTarget(inputText);
+      await this.appendChatCompletionToTarget(inputText);
     } catch (error) {
-      responseMessage.resetText();
-      responseMessage.appendText(
-        "Sorry, I'm having trouble connecting to the server."
+      this.outputTarget?.appendMessage(
+        new ChatGPTMessage((error as Error).message, "assistant")
       );
     }
-
-    this.processing = false;
-    this.setButtonToDisabled(false);
+    this.outputTarget?.scrollToBottom();
+    this.updataTokenUsage();
+    this.updateMemoryUsage();
+    this.setInputToDisabled(false);
   }
 
-  setButtonToDisabled(disabled: boolean) {
+  setInputToDisabled(disabled: boolean) {
     if (disabled) {
+      this.processing = true;
       // Disable the button and set the background to lightgrey.
       this.sendButton.setAttribute("disabled", "true");
       this.sendButton.style.backgroundColor = "lightgrey";
       this.sendButton.innerText = "Pending...";
     } else {
+      this.processing = false;
       this.sendButton.removeAttribute("disabled");
       this.sendButton.style.backgroundColor = "#4285f4";
       this.sendButton.innerText = "Send";

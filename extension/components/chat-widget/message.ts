@@ -1,9 +1,11 @@
+import { Role } from "utils/types";
+
 export class ChatGPTMessage extends HTMLElement {
   readonly message: string;
-  readonly type: string;
+  readonly type: Role;
   readonly container = document.createElement("div");
 
-  constructor(message: string = "", type = "user") {
+  constructor(message: string = "", type: Role = "user") {
     super();
     this.message = message;
     this.type = type;
@@ -36,18 +38,15 @@ export class ChatGPTMessage extends HTMLElement {
   }
 
   connectedCallback() {
-    this.container.scrollIntoView(false);
     this.container.textContent = this.message;
   }
 
   resetText(str: string = "") {
     this.container.textContent = str;
-    this.container.scrollIntoView(false);
   }
 
   appendText(str: string) {
     this.container.textContent += str;
-    this.container.scrollIntoView(false);
   }
 }
 
