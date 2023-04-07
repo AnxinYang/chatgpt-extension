@@ -22,8 +22,8 @@ export const rateLimiter = (options: RateLimiterOptions): Middleware => {
         if (client.requests < options.maxRequests) {
           client.requests += 1;
         } else {
-          ctx.response.status = 429;
-          ctx.response.body = "Too Many Requests";
+          ctx.response.status = 200;
+          ctx.response.body = "Too many requests please try again later.";
           return;
         }
       } else {
