@@ -42,13 +42,13 @@ export class ChatGPTWidget extends HTMLElement {
         right: 20px;
         width: ${options.size ?? "fit-content"};
         height: ${options.size ?? "fit-content"};
-        background-color: ${options.color ?? "rgb(53 55 64 / 50%)"};
+        background-color: ${options.color ?? "rgb(53 55 64 / 70%)"};
         backdrop-filter: blur(5px);
         -webkit-backdrop-filter: blur(5px); /* For Safari */
         box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         border-radius: 4px;
         padding: 10px;
-        z-index: 9999;
+        z-index: 99999;
       }
     `;
     if (!this.shadowRoot) return;
@@ -136,7 +136,8 @@ export class ChatGPTWidget extends HTMLElement {
 
   setupContents() {
     this.contents.id = "chatgpt-contents";
-    this.contents.style.width = "300px";
+    this.contents.style.width = "400px";
+    this.contents.style.maxWidth = "100%";
     this.contents.style.transition = "transform 0.3s ease-in-out";
   }
 

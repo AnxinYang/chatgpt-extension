@@ -9,6 +9,8 @@ export class ChatGPTInput extends HTMLElement {
   outputTarget?: ChatGPTResponse;
   readonly inputElem: HTMLInputElement = document.createElement("input");
   readonly sendButton: HTMLButtonElement = document.createElement("button");
+  readonly inputElementsContainer: HTMLDivElement =
+    document.createElement("div");
   readonly memoryUsageElem: HTMLSpanElement = document.createElement("span");
   readonly tokenUsageElem: HTMLSpanElement = document.createElement("span");
   readonly statusContainer: HTMLDivElement = document.createElement("div");
@@ -33,31 +35,21 @@ export class ChatGPTInput extends HTMLElement {
       align-items: center;
     `;
 
-    // Create the input field
-    const input = this.inputElem;
-    input.setAttribute("id", "chatgpt-input");
-    input.setAttribute("type", "text");
-    input.setAttribute("placeholder", "Type your message here...");
-    input.setAttribute("aria-label", "Type your message here");
-    input.setAttribute("autocomplete", "off");
+    this.setupInputElements();
+    this.setupStatusElements();
+    container.appendChild(this.inputElementsContainer);
+    container.appendChild(this.statusContainer);
+    shadow.appendChild(container);
+  }
 
-    input.style.cssText = `
-      width: 100%;
-      padding: 5px;
-      margin-bottom: 0.25em;
-      border-radius: 4px;
-      color: #ffffff;
-      background-color: rgba(64,65,79,1);
-      border: none;
-    `;
-    input.addEventListener("keydown", (event) => {
-      event.stopPropagation();
-      if (event.key === "Enter") {
-        event.preventDefault();
-        this.handleInput();
-      }
-      this.updataTokenUsage();
-    });
+  setupStatusElements() {
+    const container = this.statusContainer;
+    container.style.cssText = `
+    display: flex;
+    width: 100%;
+    align-items: center;
+    justify-content: space-between;
+  `;
 
     // Create memory usage indicator
     const memoryUsage = this.memoryUsageElem;
@@ -83,15 +75,47 @@ export class ChatGPTInput extends HTMLElement {
       white-space: nowrap;
   `;
 
-    // Create the status container
-    const statusContainer = this.statusContainer;
-    statusContainer.setAttribute("id", "chatgpt-status-container");
-    statusContainer.style.cssText = `
-    width: 100%;
-    height: fit-content;
-    display: flex;
-    justify-content: space-between;
+    container.appendChild(memoryUsage);
+    container.appendChild(tokenUsage);
+  }
+
+  setupInputElements() {
+    const container = this.inputElementsContainer;
+    container.style.cssText = `
+      display: flex;
+      width: 100%;
+      align-items: center;
+      justify-content: space-between;
+      background-color: rgba(64,65,79,1);
+      border-radius: 4px;
+      margin-bottom: 0.25em;
     `;
+
+    // Create the input field
+    const input = this.inputElem;
+    input.setAttribute("id", "chatgpt-input");
+    input.setAttribute("type", "text");
+    input.setAttribute("placeholder", "Type your message here...");
+    input.setAttribute("aria-label", "Type your message here");
+    input.setAttribute("autocomplete", "off");
+
+    input.style.cssText = `
+      width: 100%;
+      padding: 5px;
+      border-radius: 4px;
+      color: #ffffff;
+      background-color: transparent;
+      border: none;
+      outline:none;
+    `;
+    input.addEventListener("keydown", (event) => {
+      event.stopPropagation();
+      if (event.key === "Enter") {
+        event.preventDefault();
+        this.handleInput();
+      }
+      this.updataTokenUsage();
+    });
 
     // Create the submit button
     const submitButton = this.sendButton;
@@ -100,28 +124,20 @@ export class ChatGPTInput extends HTMLElement {
     submitButton.setAttribute("aria-label", "Send");
     submitButton.textContent = "Send";
     submitButton.style.cssText = `
-      display: block;
-      margin: 0 auto;
-      padding: 5px 10px;
-      background-color: #4285f4;
-      color: #ffffff;
-      border: none;
-      border-radius: 4px;
-    `;
+       display: block;
+       margin: 0 auto;
+       padding: 5px 10px;
+       background-color: #4285f4;
+       color: #ffffff;
+       border: none;
+       border-radius: 4px;
+     `;
     submitButton.addEventListener("click", () => {
       this.handleInput();
     });
 
-    const style = document.createElement("style");
-    style.textContent = `* { box-sizing: border-box; } `;
-
     container.appendChild(input);
-    statusContainer.appendChild(memoryUsage);
-    statusContainer.appendChild(tokenUsage);
-    container.appendChild(statusContainer);
     container.appendChild(submitButton);
-    shadow.appendChild(container);
-    shadow.appendChild(style);
   }
 
   setOutputTarget(target: ChatGPTResponse) {
@@ -160,13 +176,11 @@ export class ChatGPTInput extends HTMLElement {
     this.calculationTimer = setTimeout(() => {
       const tokenizedString = getTokenizedString(this.inputElem.value);
       this.tokenUsageElem.innerText = `Token: ${tokenizedString.encode.bpe.length}/${MAX_INPUT_TOKENS}`;
-    }, 1000);
+    }, 500);
   }
 
   updateMemoryUsage() {
-    this.memoryUsageElem.innerText = `Memory usage: ${Math.round(
-      (getCurrentTokenUsage() * 100) / MAX_MEMORY_TOKENS
-    )}%`;
+    this.memoryUsageElem.innerText = `Memorized tokens: ${getCurrentTokenUsage()}/ ${MAX_MEMORY_TOKENS}`;
   }
 
   async handleInput() {

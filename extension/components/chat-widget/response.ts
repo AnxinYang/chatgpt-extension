@@ -15,9 +15,6 @@ export class ChatGPTResponse extends HTMLElement {
       height: fit-content;
       overflow-y: auto;
       max-height: 50vh;
-      margin-bottom: 1em;
-      padding: 5px;
-      /*border: 1px solid #ccc;*/
       scrollbar-width: thin;
       scrollbar-color: #888 #f1f1f1;
     `;
