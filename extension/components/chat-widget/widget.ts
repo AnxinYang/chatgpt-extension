@@ -129,7 +129,7 @@ export class ChatGPTWidget extends HTMLElement {
       this.container.remove();
     });
 
-    this.buttons.appendChild(clear);
+    // this.buttons.appendChild(clear);
     this.buttons.appendChild(toggle);
     this.buttons.appendChild(remove);
   }

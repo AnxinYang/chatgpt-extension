@@ -2,6 +2,8 @@
 - Fixed a minor bug.
 - Fixed the order of memory.
 - Added retry button.
+- Removed the clear button for now.
+- Refacting the codebase to allow more features.
 
 ### Update 1.2.4
 - Performance optimazation.
