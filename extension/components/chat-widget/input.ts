@@ -1,4 +1,4 @@
-import { getChatCompletion } from "utils/api";
+import { getChatCompletion, retryChatCompletion } from "utils/api";
 import { addToHistory, getCurrentTokenUsage } from "utils/prompt";
 import { ChatGPTMessage } from "./message";
 import { ChatGPTResponse } from "./response";
@@ -7,6 +7,8 @@ import { getTokenizedString } from "utils/system/get-tokenized-string";
 
 export class ChatGPTInput extends HTMLElement {
   outputTarget?: ChatGPTResponse;
+  readonly container = document.createElement("div");
+  readonly retryButtonContainer: HTMLDivElement = document.createElement("div");
   readonly inputElem: HTMLInputElement = document.createElement("input");
   readonly sendButton: HTMLButtonElement = document.createElement("button");
   readonly inputElementsContainer: HTMLDivElement =
@@ -14,6 +16,8 @@ export class ChatGPTInput extends HTMLElement {
   readonly memoryUsageElem: HTMLSpanElement = document.createElement("span");
   readonly tokenUsageElem: HTMLSpanElement = document.createElement("span");
   readonly statusContainer: HTMLDivElement = document.createElement("div");
+
+  lastMessage?: ChatGPTMessage;
   processing = false;
   calculationTimer?: number;
 
@@ -23,7 +27,7 @@ export class ChatGPTInput extends HTMLElement {
     // Attach a shadow root to the custom element
     const shadow = this.attachShadow({ mode: "open" });
 
-    const container = document.createElement("div");
+    const container = this.container;
     container.setAttribute("id", "chatgpt-input-container");
     container.style.cssText = `
       width: 100%;
@@ -35,11 +39,43 @@ export class ChatGPTInput extends HTMLElement {
       align-items: center;
     `;
 
+    this.setupRetryButtonContainer();
     this.setupInputElements();
     this.setupStatusElements();
+    container.appendChild(this.retryButtonContainer);
     container.appendChild(this.inputElementsContainer);
     container.appendChild(this.statusContainer);
     shadow.appendChild(container);
+  }
+  setupRetryButtonContainer() {
+    const retryButtonContainer = this.retryButtonContainer;
+    retryButtonContainer.setAttribute("id", "chatgpt-retry-button-container");
+    retryButtonContainer.style.cssText = `
+      display: flex;
+      width: 100%;
+      justify-content: center;
+      margin: 0.5em 0;
+    `;
+  }
+  setupRetryButton() {
+    if (this.retryButtonContainer.children.length > 0) return;
+    const retryButton = document.createElement("button");
+    retryButton.setAttribute("id", "chatgpt-retry-button");
+    retryButton.textContent = "Regenerate";
+    retryButton.style.cssText = `
+      margin: auto;
+      color: white;
+      background-color: #6e6e80;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.75em;
+      padding: 0.5em 1em;
+    `;
+    retryButton.addEventListener("click", () => {
+      this.handleRetry();
+    });
+    this.retryButtonContainer.appendChild(retryButton);
   }
 
   setupStatusElements() {
@@ -151,12 +187,12 @@ export class ChatGPTInput extends HTMLElement {
       throw new Error("Your input is too long. Please shorten it.");
     }
     this.outputTarget.appendMessage(new ChatGPTMessage(inputText, "user"));
-    addToHistory(inputText, "user");
     this.inputElem.value = "";
   }
 
   async appendChatCompletionToTarget(inputText: string) {
     const responseMessage = new ChatGPTMessage("...", "assistant");
+    this.lastMessage = responseMessage;
     this.outputTarget?.appendMessage(responseMessage);
     let isReset = false;
 
@@ -168,7 +204,7 @@ export class ChatGPTInput extends HTMLElement {
       responseMessage.appendText(message);
       this.outputTarget?.scrollToBottom();
     });
-    addToHistory(newMessage, "assistant");
+    await addToHistory(newMessage, "assistant");
   }
 
   updataTokenUsage() {
@@ -183,6 +219,38 @@ export class ChatGPTInput extends HTMLElement {
     this.memoryUsageElem.innerText = `Memorized tokens: ${getCurrentTokenUsage()}/ ${MAX_MEMORY_TOKENS}`;
   }
 
+  async handleRetry() {
+    if (this.processing) return;
+    try {
+      this.setInputToDisabled(true);
+      if (!this.lastMessage) return;
+      this.lastMessage?.resetText();
+      this.lastMessage?.appendText("...");
+      let isReset = false;
+      const newMessage = await retryChatCompletion((message) => {
+        if (!isReset) {
+          this.lastMessage?.resetText();
+          isReset = true;
+        }
+        this.lastMessage?.appendText(message);
+        this.outputTarget?.scrollToBottom();
+      });
+      await addToHistory(newMessage, "assistant");
+    } catch (error) {
+      if (this.lastMessage) {
+        this.lastMessage.appendText((error as Error).message);
+        return;
+      }
+      this.outputTarget?.appendMessage(
+        new ChatGPTMessage((error as Error).message, "assistant")
+      );
+    }
+    this.outputTarget?.scrollToBottom();
+    this.updataTokenUsage();
+    this.updateMemoryUsage();
+    this.setInputToDisabled(false);
+  }
+
   async handleInput() {
     if (this.processing) return;
     const inputText = this.inputElem.value.trim();
@@ -190,8 +258,14 @@ export class ChatGPTInput extends HTMLElement {
     try {
       this.setInputToDisabled(true);
       this.appendUserInputToTarget(inputText);
+      await addToHistory(inputText, "user");
       await this.appendChatCompletionToTarget(inputText);
+      this.setupRetryButton();
     } catch (error) {
+      if (this.lastMessage) {
+        this.lastMessage.appendText((error as Error).message);
+        return;
+      }
       this.outputTarget?.appendMessage(
         new ChatGPTMessage((error as Error).message, "assistant")
       );
@@ -209,11 +283,13 @@ export class ChatGPTInput extends HTMLElement {
       this.sendButton.setAttribute("disabled", "true");
       this.sendButton.style.backgroundColor = "lightgrey";
       this.sendButton.innerText = "Pending...";
+      this.retryButtonContainer.style.display = "none";
     } else {
       this.processing = false;
       this.sendButton.removeAttribute("disabled");
       this.sendButton.style.backgroundColor = "#4285f4";
       this.sendButton.innerText = "Send";
+      this.retryButtonContainer.style.display = "block";
     }
   }
 }
