@@ -1,3 +1,8 @@
+### Update 1.2.5
+- Fixed a minor bug.
+- Fixed the order of memory.
+- Added retry button.
+
 ### Update 1.2.4
 - Performance optimazation.
 - Style adjustment

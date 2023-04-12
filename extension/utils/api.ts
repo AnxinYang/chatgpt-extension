@@ -1,4 +1,4 @@
-import { Message, generateMessages } from "./prompt";
+import { Message, generateMessages, generateRetryMessages } from "./prompt";
 
 export interface ChatGPTChunk {
   id: string;
@@ -46,11 +46,10 @@ const readMessagesFromStreamData = (data: string): string => {
   return result;
 };
 
-export const getChatCompletion = async (
-  message: string,
+const requestChatCompletion = async (
+  messages: Message[],
   onMessage: (message: string) => void
 ): Promise<string> => {
-  const messages = generateMessages(message);
   const response = await fetch(apiEndpoint, {
     method: "POST",
     headers: {
@@ -77,6 +76,21 @@ export const getChatCompletion = async (
   }
 
   return newMessage;
+};
+
+export const retryChatCompletion = async (
+  onMessage: (message: string) => void
+): Promise<string> => {
+  const messages = generateRetryMessages();
+  return await requestChatCompletion(messages, onMessage);
+};
+
+export const getChatCompletion = async (
+  message: string,
+  onMessage: (message: string) => void
+): Promise<string> => {
+  const messages = generateMessages(message);
+  return await requestChatCompletion(messages, onMessage);
 };
 
 // Get Chat Summary
