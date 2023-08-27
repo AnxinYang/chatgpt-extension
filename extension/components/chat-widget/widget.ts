@@ -54,8 +54,36 @@ export class ChatGPTWidget extends HTMLElement {
       }
     );
   }
+
+  setStyle() {
+    const style = document.createElement("style");
+    style.textContent = `
+      * {
+        box-sizing: border-box;
+      }
+      *::-webkit-scrollbar {
+        width: 4px;
+      }
+
+      *::-webkit-scrollbar-track {
+        background-color: var(--scrollbar-track-color, transparent);
+        border-radius: 4px;
+      }
+
+      *::-webkit-scrollbar-thumb {
+        background-color: var(--scrollbar-thumb-color, #888);
+        border-radius: 4px;
+      }
+
+      *::-webkit-scrollbar-thumb:hover {
+        background-color: var(--scrollbar-thumb-hover-color, #555);
+      }
+      `;
+    this.shadowRoot?.appendChild(style);
+  }
   connectedCallback() {
     this.render();
+    this.setStyle();
   }
 }
 

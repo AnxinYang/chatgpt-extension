@@ -12,10 +12,17 @@ export function conversationRenderProvider({
 }: ConversationRenderDeps): () => HTMLElement {
   return () => {
     const container = document.createElement("div");
-    container.addEventListener(
-      WidgetEventType.ADD_CONVERSATION as any,
-      addConversationEventHandler
-    );
+    container.addEventListener(WidgetEventType.ADD_CONVERSATION as any, (e) => {
+      addConversationEventHandler.call(container, e);
+    });
+    container.style.cssText = `
+        height: fit-content;
+        overflow-y: auto;
+        overflow-x: hidden;
+        max-height: 50vh;
+        width: 600px;
+        max-width: 30vw;
+    `;
     return container;
   };
 }

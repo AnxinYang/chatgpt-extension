@@ -17,11 +17,11 @@ export function containerRenderProvider({
       right: 20px;
       width: fit-content;
       height: fit-content;
-      background-color: rgb(53 55 64 / 70%);
+      background-color: rgb(53 55 64 / 50%);
       backdrop-filter: blur(5px);
       -webkit-backdrop-filter: blur(5px); /* For Safari */
       box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-      border-radius: 4px;
+      border-radius: 12px;
       padding: 10px;
       z-index: 99999;
     `;
