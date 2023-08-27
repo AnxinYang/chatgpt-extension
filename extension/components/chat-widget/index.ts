@@ -2,10 +2,11 @@ import { buttonsRenderProvider } from "./buttons";
 import { containerRenderProvider } from "./container";
 import { conversationRenderProvider } from "./conversation";
 import { inputRenderProvider } from "./input";
+import { messageRender } from "./message";
 import { ChatGPTResponse } from "./response";
 import {
   addConversationHandler,
-  addConversationEventHandler,
+  addConversationEventHandlerProvider,
   submitEventHandler,
   submitHandler,
   toggleButtonHandler,
@@ -23,7 +24,9 @@ const chatWidget = new ChatGPTWidget({
     closeHandler: () => {},
   }),
   conversationRender: conversationRenderProvider({
-    addConversationEventHandler,
+    addConversationEventHandler: addConversationEventHandlerProvider({
+      messageRender,
+    }),
   }),
   inputRender: inputRenderProvider({
     submitHandler,

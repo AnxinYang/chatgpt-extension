@@ -56,8 +56,19 @@ export function addConversationHandler(
   console.log("addConversationHandler", event);
 }
 
-export function addConversationEventHandler(
-  e: WidgetEvent<{ content: string; isUser: boolean }>
-) {
-  console.log("addConversationEventHandler", e);
+export function addConversationEventHandlerProvider({
+  messageRender,
+}: {
+  messageRender: (content: string, isUser: boolean) => HTMLElement;
+}) {
+  return function (
+    this: HTMLElement,
+    e: WidgetEvent<{ content: string; isUser: boolean }>
+  ) {
+    const container = this as HTMLElement;
+    const message = messageRender(e.detail.content, e.detail.isUser);
+    container.appendChild(message);
+
+    console.log("addConversationEventHandler", e);
+  };
 }
