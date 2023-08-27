@@ -1,149 +1,61 @@
-import { clearHistory } from "utils/prompt";
-import { ChatGPTResponse } from "./response";
+import { WidgetEvent, WidgetEventType, widgetEvent } from "./utils";
+
+export interface ChatWidgetDeps {
+  containerRender: () => HTMLElement;
+  buttonsRender: () => HTMLElement;
+  conversationRender: () => HTMLElement;
+  inputRender: () => HTMLElement;
+}
 
 export class ChatGPTWidget extends HTMLElement {
-  readonly container = document.createElement("div");
-  readonly contents = document.createElement("div");
-  readonly buttons = document.createElement("div");
-  readonly ads = document.createElement("div");
+  readonly containerRender: () => HTMLElement;
+  readonly buttonsRender: () => HTMLElement;
+  readonly conversationRender: () => HTMLElement;
+  readonly inputRender: () => HTMLElement;
 
-  constructor(
-    options: { position?: string; color?: string; size?: string } = {}
-  ) {
+  constructor({
+    containerRender,
+    buttonsRender,
+    conversationRender,
+    inputRender,
+  }: ChatWidgetDeps) {
     super();
-
-    // Attach a shadow root to the custom element
-    this.attachShadow({ mode: "open" });
-
-    const style = document.createElement("style");
-    style.textContent = `
-      * {
-        box-sizing: border-box;
-      }
-      * button {
-        cursor: pointer;
-        border: none;
-        color: white;
-        background: #6e6e80;
-        border-radius: 4px;
-      }
-      #chatgpt-container[data-hidden="true"] #my-ads{
-        display: none;
-      }
-      #chatgpt-container[data-hidden="true"] #chatgpt-contents{
-        display: none;
-      }
-      #chatgpt-container[data-hidden="true"] #clear-button{
-        display: none;
-      }
-      #chatgpt-container {
-        position: ${options.position ?? "fixed"};
-        bottom: 20px;
-        right: 20px;
-        width: ${options.size ?? "fit-content"};
-        height: ${options.size ?? "fit-content"};
-        background-color: ${options.color ?? "rgb(53 55 64 / 70%)"};
-        backdrop-filter: blur(5px);
-        -webkit-backdrop-filter: blur(5px); /* For Safari */
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        border-radius: 4px;
-        padding: 10px;
-        z-index: 99999;
-      }
-    `;
-    if (!this.shadowRoot) return;
-    this.shadowRoot.appendChild(style);
+    this.containerRender = containerRender;
+    this.buttonsRender = buttonsRender;
+    this.conversationRender = conversationRender;
+    this.inputRender = inputRender;
   }
+  render() {
+    const shadow = this.attachShadow({ mode: "open" });
+    const container = this.containerRender();
+    const buttons = this.buttonsRender();
+    const conversation = this.conversationRender();
+    const input = this.inputRender();
 
-  connectedCallback() {
-    if (!this.shadowRoot) return;
-    this.shadowRoot.appendChild(this.container);
+    shadow.appendChild(container);
 
-    this.container.appendChild(this.buttons);
-    this.container.appendChild(this.contents);
-    this.container.appendChild(this.ads);
-    this.setupContainer();
-    this.setupContents();
-    this.setupButtons();
-    this.setupAds();
-  }
+    container.appendChild(buttons);
+    container.appendChild(conversation);
+    container.appendChild(input);
 
-  setupContainer() {
-    this.container.id = "chatgpt-container";
-    this.container.setAttribute("aria-label", "Chat widget");
-  }
-
-  setupAds() {
-    this.ads.id = "my-ads";
-    this.ads.style.width = "100%";
-    this.ads.style.fontSize = "0.75em";
-    this.ads.style.marginTop = "10px";
-    const buyMeACoffee = document.createElement("a");
-    buyMeACoffee.setAttribute(
-      "href",
-      "https://www.buymeacoffee.com/anxinyang1E"
+    container.addEventListener(
+      WidgetEventType.REG_TOGGLE as any,
+      (e: WidgetEvent) => {
+        container.dispatchEvent(widgetEvent(WidgetEventType.TOGGLE));
+      }
     );
-    buyMeACoffee.setAttribute("target", "_blank");
 
-    buyMeACoffee.style.color = "#eee";
-    buyMeACoffee.innerText = "Buy me a coffee, if you like this project.";
-
-    this.ads.appendChild(buyMeACoffee);
+    container.addEventListener(
+      WidgetEventType.REG_ADD_CONVERSATION as any,
+      (e: WidgetEvent) => {
+        conversation.dispatchEvent(
+          widgetEvent(WidgetEventType.ADD_CONVERSATION, e.detail)
+        );
+      }
+    );
   }
-
-  setupButtons() {
-    this.buttons.style.display = "flex";
-    this.buttons.style.justifyContent = "flex-end";
-    this.buttons.style.marginBottom = "10px";
-    this.buttons.style.gap = "10px";
-
-    const toggle = document.createElement("button");
-    toggle.setAttribute("aria-label", "Toggle chat widget visibility");
-    this.container.setAttribute("data-hidden", "true");
-    toggle.textContent = "+";
-    toggle.addEventListener("click", () => {
-      const isHidden = this.container.getAttribute("data-hidden") === "true";
-      toggle.textContent = !isHidden ? "+" : "-";
-      this.container.setAttribute("data-hidden", isHidden ? "false" : "true");
-    });
-
-    // Add a clear button to clear the chat history.
-    const clear = document.createElement("button");
-    clear.setAttribute("aria-label", "Clear chat history");
-    clear.id = "clear-button";
-    clear.textContent = "Clear";
-    clear.addEventListener("click", () => {
-      const responses = this.container.querySelector(
-        "chatgpt-response"
-      ) as ChatGPTResponse;
-      responses?.clear();
-      clearHistory();
-    });
-
-    // Add a button to remove the chat widget.
-    const remove = document.createElement("button");
-    remove.setAttribute("aria-label", "Remove chat widget");
-    remove.textContent = "X";
-    remove.style.background = "#8d2c2c";
-    remove.addEventListener("click", () => {
-      this.container.remove();
-    });
-
-    // this.buttons.appendChild(clear);
-    this.buttons.appendChild(toggle);
-    this.buttons.appendChild(remove);
-  }
-
-  setupContents() {
-    this.contents.id = "chatgpt-contents";
-    this.contents.style.width = "400px";
-    this.contents.style.maxWidth = "100%";
-    this.contents.style.transition = "transform 0.3s ease-in-out";
-  }
-
-  appendComponent(component: HTMLElement) {
-    if (!this.shadowRoot) return;
-    this.contents.appendChild(component);
+  connectedCallback() {
+    this.render();
   }
 }
 
