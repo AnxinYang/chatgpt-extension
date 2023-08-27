@@ -1,3 +1,5 @@
+import { getChatCompletion } from "utils/api";
+
 export interface WidgetEvent<BodyT = undefined> extends CustomEvent {
   detail: BodyT;
 }
@@ -39,8 +41,20 @@ export function submitHandler(this: HTMLElement, str: string) {
   this.dispatchEvent(event);
 }
 
-export function submitEventHandler(this: HTMLElement, e: WidgetEvent<string>) {
-  console.log("submitEventHandler", e);
+export function submitEventHandlerProvider({
+  messageRender,
+}: {
+  messageRender: (content: string, isUser: boolean) => HTMLElement;
+}) {
+  return async (e: WidgetEvent<string>, appendMessageTo: HTMLElement) => {
+    console.log("submitEventHandler", e);
+    const message = e.detail;
+    const messageElement = messageRender("", false);
+    appendMessageTo.appendChild(messageElement);
+    await getChatCompletion(message, (str) => {
+      messageElement.textContent += str;
+    });
+  };
 }
 
 export function addConversationHandler(

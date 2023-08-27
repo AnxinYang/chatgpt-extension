@@ -5,6 +5,10 @@ export interface ChatWidgetDeps {
   buttonsRender: () => HTMLElement;
   conversationRender: () => HTMLElement;
   inputRender: () => HTMLElement;
+  submitEventHandler: (
+    e: WidgetEvent<string>,
+    appendMessageTo: HTMLElement
+  ) => Promise<void>;
 }
 
 export class ChatGPTWidget extends HTMLElement {
@@ -12,18 +16,25 @@ export class ChatGPTWidget extends HTMLElement {
   readonly buttonsRender: () => HTMLElement;
   readonly conversationRender: () => HTMLElement;
   readonly inputRender: () => HTMLElement;
+  readonly submitEventHandler: (
+    this: HTMLElement,
+    e: WidgetEvent<string>,
+    appendMessageTo: HTMLElement
+  ) => void;
 
   constructor({
     containerRender,
     buttonsRender,
     conversationRender,
     inputRender,
+    submitEventHandler,
   }: ChatWidgetDeps) {
     super();
     this.containerRender = containerRender;
     this.buttonsRender = buttonsRender;
     this.conversationRender = conversationRender;
     this.inputRender = inputRender;
+    this.submitEventHandler = submitEventHandler;
   }
   render() {
     const shadow = this.attachShadow({ mode: "open" });
@@ -53,6 +64,10 @@ export class ChatGPTWidget extends HTMLElement {
         );
       }
     );
+
+    container.addEventListener(WidgetEventType.REG_SUBMIT as any, (e) => {
+      this.submitEventHandler(e, conversation);
+    });
   }
 
   setStyle() {

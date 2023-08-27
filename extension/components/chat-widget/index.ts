@@ -7,7 +7,7 @@ import { ChatGPTResponse } from "./response";
 import {
   addConversationHandler,
   addConversationEventHandlerProvider,
-  submitEventHandler,
+  submitEventHandlerProvider,
   submitHandler,
   toggleButtonHandler,
   toggleEventHandler,
@@ -31,6 +31,9 @@ const chatWidget = new ChatGPTWidget({
   inputRender: inputRenderProvider({
     submitHandler,
     addConversationHandler,
+  }),
+  submitEventHandler: submitEventHandlerProvider({
+    messageRender,
   }),
 });
 

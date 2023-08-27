@@ -12,8 +12,8 @@ export function inputRenderProvider({
   addConversationHandler,
 }: InputRenderDeps) {
   const doSubmit = (input: HTMLInputElement) => {
-    submitHandler.call(input, input.value);
     addConversationHandler.call(input, input.value, true);
+    submitHandler.call(input, input.value);
     input.value = "";
   };
 
