@@ -20,10 +20,10 @@ export function widgetEvent<BodyT>(
   return new CustomEvent(eventName, { detail, bubbles: true });
 }
 
-export function toggleButtonHandler(this: HTMLElement, e: MouseEvent) {
-  const event = widgetEvent.call(this, WidgetEventType.REG_TOGGLE);
+export function toggleButtonHandler(e: MouseEvent) {
+  const event = widgetEvent(WidgetEventType.REG_TOGGLE);
   console.log("toggleButtonHandler", event);
-  this.dispatchEvent(event);
+  e.target?.dispatchEvent(event);
 }
 
 export function toggleEventHandler(
