@@ -1,4 +1,5 @@
 import { getChatCompletion } from "utils/api";
+import { generateKeyframes } from "./styles";
 
 export interface WidgetEvent<BodyT = undefined> extends CustomEvent {
   detail: BodyT;
@@ -27,13 +28,50 @@ export function toggleButtonHandler(e: MouseEvent) {
 }
 
 export function toggleEventHandler(
-  this: HTMLElement,
-  e: WidgetEvent<undefined>
+  container: HTMLElement,
+  innerContent: HTMLElement
 ) {
-  const container = this as HTMLElement;
-  const hidden = container.getAttribute("data-hidden") === "true";
-  container.setAttribute("data-hidden", String(!hidden));
-  console.log("toggleEventHandler", e);
+  const isOpened = container.getAttribute("data-open") === "true";
+  container.style.width = "72px";
+  container.style.height = "48px";
+  const containerCloseRect = container.getBoundingClientRect();
+  const innerContentCloseRect = innerContent.getBoundingClientRect();
+  container.style.width = "fit-content";
+  container.style.height = "fit-content";
+  const containerOpenRect = container.getBoundingClientRect();
+  const innerContentOpenRect = innerContent.getBoundingClientRect();
+  const animationOptions = {
+    duration: 100,
+    easing: "ease-in-out",
+  };
+
+  if (isOpened) {
+    const [containerKeyframes, innerContentKeyframes] = generateKeyframes(
+      containerOpenRect,
+      containerCloseRect,
+      innerContentOpenRect,
+      innerContentCloseRect
+    );
+    container.style.width = "72px";
+    container.style.height = "48px";
+    container.animate(containerKeyframes, animationOptions);
+    innerContent.animate(innerContentKeyframes, animationOptions);
+  } else {
+    const [containerKeyframes, innerContentKeyframes] = generateKeyframes(
+      containerCloseRect,
+      containerOpenRect,
+      innerContentCloseRect,
+      innerContentOpenRect
+    );
+
+    container.style.width = "fit-content";
+    container.style.height = "fit-content";
+    container.animate(containerKeyframes, animationOptions);
+    innerContent.animate(innerContentKeyframes, animationOptions);
+  }
+
+  container.setAttribute("data-open", isOpened ? "false" : "true");
+  console.log("toggleEventHandler");
 }
 
 export function submitHandler(this: HTMLElement, str: string) {

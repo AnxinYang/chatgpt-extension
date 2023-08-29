@@ -16,9 +16,7 @@ import { ChatGPTWidget } from "./widget";
 
 // Create the custom element
 const chatWidget = new ChatGPTWidget({
-  containerRender: containerRenderProvider({
-    toggleEventHandler,
-  }),
+  containerRender: containerRenderProvider({}),
   buttonsRender: buttonsRenderProvider({
     toggleHandler: toggleButtonHandler,
     closeHandler: () => {},
@@ -35,6 +33,7 @@ const chatWidget = new ChatGPTWidget({
   submitEventHandler: submitEventHandlerProvider({
     messageRender,
   }),
+  toggleEventHandler,
 });
 
 export { chatWidget };

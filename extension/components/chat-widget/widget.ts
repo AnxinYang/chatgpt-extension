@@ -9,6 +9,10 @@ export interface ChatWidgetDeps {
     e: WidgetEvent<string>,
     appendMessageTo: HTMLElement
   ) => Promise<void>;
+  toggleEventHandler: (
+    container: HTMLElement,
+    innerContent: HTMLElement
+  ) => void;
 }
 
 export class ChatGPTWidget extends HTMLElement {
@@ -21,6 +25,10 @@ export class ChatGPTWidget extends HTMLElement {
     e: WidgetEvent<string>,
     appendMessageTo: HTMLElement
   ) => void;
+  readonly toggleEventHandler: (
+    container: HTMLElement,
+    innerContent: HTMLElement
+  ) => void;
 
   constructor({
     containerRender,
@@ -28,6 +36,7 @@ export class ChatGPTWidget extends HTMLElement {
     conversationRender,
     inputRender,
     submitEventHandler,
+    toggleEventHandler,
   }: ChatWidgetDeps) {
     super();
     this.containerRender = containerRender;
@@ -35,6 +44,7 @@ export class ChatGPTWidget extends HTMLElement {
     this.conversationRender = conversationRender;
     this.inputRender = inputRender;
     this.submitEventHandler = submitEventHandler;
+    this.toggleEventHandler = toggleEventHandler;
   }
   render() {
     const shadow = this.attachShadow({ mode: "open" });
@@ -42,17 +52,24 @@ export class ChatGPTWidget extends HTMLElement {
     const buttons = this.buttonsRender();
     const conversation = this.conversationRender();
     const input = this.inputRender();
+    const content = document.createElement("div");
+    content.style.cssText = `
+      padding: 10px;
+      transform-origin: top right;
+    `;
 
     shadow.appendChild(container);
 
-    container.appendChild(buttons);
-    container.appendChild(conversation);
-    container.appendChild(input);
+    content.appendChild(buttons);
+    content.appendChild(conversation);
+    content.appendChild(input);
+
+    container.appendChild(content);
 
     container.addEventListener(
       WidgetEventType.REG_TOGGLE as any,
       (e: WidgetEvent) => {
-        container.dispatchEvent(widgetEvent(WidgetEventType.TOGGLE));
+        this.toggleEventHandler(container, content);
       }
     );
 
