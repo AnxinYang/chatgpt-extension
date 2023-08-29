@@ -41,7 +41,7 @@ export function toggleEventHandler(
   const containerOpenRect = container.getBoundingClientRect();
   const innerContentOpenRect = innerContent.getBoundingClientRect();
   const animationOptions = {
-    duration: 100,
+    duration: 200,
     easing: "ease-in-out",
   };
 
