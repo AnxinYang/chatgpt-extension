@@ -77,7 +77,7 @@ export class ChatGPTWidget extends HTMLElement {
         box-sizing: border-box;
       }
       *::-webkit-scrollbar {
-        width: 4px;
+        width: 0px;
       }
 
       *::-webkit-scrollbar-track {

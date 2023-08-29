@@ -49,10 +49,17 @@ export function submitEventHandlerProvider({
   return async (e: WidgetEvent<string>, appendMessageTo: HTMLElement) => {
     console.log("submitEventHandler", e);
     const message = e.detail;
-    const messageElement = messageRender("", false);
+    const messageElement = messageRender("...", false);
     appendMessageTo.appendChild(messageElement);
+    let isFristString = true;
     await getChatCompletion(message, (str) => {
+      if (isFristString) {
+        messageElement.textContent = "";
+        isFristString = false;
+      }
       messageElement.textContent += str;
+      const messageContainer = messageElement.parentElement as HTMLElement;
+      messageContainer.scrollTop = messageContainer.scrollHeight;
     });
   };
 }
@@ -76,13 +83,13 @@ export function addConversationEventHandlerProvider({
   messageRender: (content: string, isUser: boolean) => HTMLElement;
 }) {
   return function (
-    this: HTMLElement,
-    e: WidgetEvent<{ content: string; isUser: boolean }>
+    e: WidgetEvent<{ content: string; isUser: boolean }>,
+    container: HTMLElement
   ) {
-    const container = this as HTMLElement;
     const message = messageRender(e.detail.content, e.detail.isUser);
     container.appendChild(message);
 
+    container.scrollTop = container.scrollHeight;
     console.log("addConversationEventHandler", e);
   };
 }

@@ -4,9 +4,9 @@ export function messageRender(content: string, isUser: boolean): HTMLElement {
   container.setAttribute("data-token-usage", "0");
   container.innerText = content;
   container.style.cssText = `
-    padding: 5px 10px;
-    margin: 1em 0;
-    border-radius: 4px;
+    padding: 0.5em 12px;
+    margin: 0.75em 0;
+    border-radius: 12px;
     background-color: ${isUser ? "#4285f4" : "#ccc"};
     color: ${isUser ? "#ffffff" : "#000000"};
     white-space: pre-wrap;
