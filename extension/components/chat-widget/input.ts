@@ -1,13 +1,7 @@
 import { applyCSStoElement } from "./styles";
+import { ChatGPTWidget } from "./widget";
 
-export interface InputRenderDeps {
-  submitHandler: (input: string) => void;
-  addConversationHandler: (
-    this: HTMLElement,
-    str: string,
-    isUser?: boolean
-  ) => void;
-}
+export interface InputRenderDeps {}
 
 const inputContainerStyle = {
   display: "flex",
@@ -29,17 +23,8 @@ const inputStyle = {
   outline: "none",
 };
 
-export function inputRenderProvider({
-  submitHandler,
-  addConversationHandler,
-}: InputRenderDeps) {
-  const doSubmit = (input: HTMLInputElement) => {
-    addConversationHandler.call(input, input.value, true);
-    submitHandler.call(input, input.value);
-    input.value = "";
-  };
-
-  return () => {
+export function inputRenderProvider({}: InputRenderDeps) {
+  return (widget: ChatGPTWidget) => {
     const container = document.createElement("div");
     applyCSStoElement(container, inputContainerStyle);
 
@@ -52,7 +37,8 @@ export function inputRenderProvider({
       event.stopPropagation();
       if (event.key === "Enter") {
         event.preventDefault();
-        doSubmit(input);
+        widget.handleUserInput(input.value);
+        input.value = "";
       }
     });
 

@@ -1,20 +1,11 @@
 import { WidgetEvent, WidgetEventType } from "./utils";
 
-export interface ConversationRenderDeps {
-  addConversationEventHandler: (
-    e: WidgetEvent<{ content: string; isUser: boolean }>,
-    container: HTMLElement
-  ) => void;
-}
+export interface ConversationRenderDeps {}
 
-export function conversationRenderProvider({
-  addConversationEventHandler,
-}: ConversationRenderDeps): () => HTMLElement {
+export function conversationRenderProvider({}: ConversationRenderDeps): () => HTMLElement {
   return () => {
     const container = document.createElement("div");
-    container.addEventListener(WidgetEventType.ADD_CONVERSATION as any, (e) => {
-      addConversationEventHandler(e, container);
-    });
+
     container.style.cssText = `
         height: fit-content;
         overflow-y: auto;

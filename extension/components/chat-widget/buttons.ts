@@ -1,9 +1,7 @@
 import { applyCSStoElement } from "./styles";
+import { ChatGPTWidget } from "./widget";
 
-export interface ButtonsRenderDeps {
-  toggleHandler: (e: MouseEvent) => void;
-  closeHandler: (e: MouseEvent) => void;
-}
+export interface ButtonsRenderDeps {}
 
 const commonButtonStyle = {
   "box-sizing": "border-box",
@@ -17,11 +15,10 @@ const commonButtonStyle = {
   "border-radius": "12px",
 };
 
-export function buttonsRenderProvider({
-  toggleHandler,
-  closeHandler,
-}: ButtonsRenderDeps): () => HTMLElement {
-  return () => {
+export function buttonsRenderProvider({}: ButtonsRenderDeps): (
+  widget: ChatGPTWidget
+) => HTMLElement {
+  return (widget: ChatGPTWidget) => {
     const container = document.createElement("div");
     container.style.cssText = `
       display: flex;
@@ -35,7 +32,7 @@ export function buttonsRenderProvider({
     toggleButton.textContent = "+";
     toggleButton.addEventListener("click", (e) => {
       e.stopPropagation();
-      toggleHandler(e);
+      widget.toggle();
       if (toggleButton.textContent === "+") {
         toggleButton.textContent = "-";
       } else {
@@ -49,7 +46,7 @@ export function buttonsRenderProvider({
       background: "rgb(141, 44, 44)",
     });
     closeButton.textContent = "X";
-    closeButton.addEventListener("click", closeHandler);
+    closeButton.addEventListener("click", widget.close);
 
     container.appendChild(toggleButton);
     container.appendChild(closeButton);

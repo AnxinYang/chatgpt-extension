@@ -9,9 +9,10 @@ export function containerRenderProvider({}: ContainerRenderDeps): () => HTMLElem
     container.setAttribute("data-hidden", "true");
     container.style.cssText = `
       position: fixed;
+      font-family: "Noto Sans KR", sans-serif;
       bottom: 20px;
       right: 20px;
-      background-color: rgb(53 55 64 / 50%);
+      background-color: rgb(53 55 64 / 70%);
       backdrop-filter: blur(5px);
       -webkit-backdrop-filter: blur(5px); /* For Safari */
       box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);

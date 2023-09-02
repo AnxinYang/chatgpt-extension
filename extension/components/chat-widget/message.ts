@@ -1,7 +1,9 @@
-export function messageRender(content: string, isUser: boolean): HTMLElement {
+import { Message } from "utils/types";
+
+export function messageRender({ role, content }: Message): HTMLElement {
   const container = document.createElement("div");
-  container.setAttribute("data-role", isUser ? "user" : "assistant");
-  container.setAttribute("data-token-usage", "0");
+  const isUser = role === "user";
+
   container.innerText = content;
   container.style.cssText = `
     padding: 0.5em 12px;

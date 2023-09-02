@@ -7,7 +7,7 @@ const systemPrompts = [
   "Always answer in the last language that the user used in prompt.",
 ];
 
-const getSystemMsgs = (): readonly Message[] => {
+const getSystemMsgs = (): Message[] => {
   const messages: Message[] = systemPrompts.map((prompt) => ({
     role: "system",
     content: prompt,
