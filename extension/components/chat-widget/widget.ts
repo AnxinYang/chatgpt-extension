@@ -1,3 +1,4 @@
+import { Message } from "utils/types";
 import { WidgetEvent, WidgetEventType, widgetEvent } from "./utils";
 
 export interface ChatWidgetDeps {
@@ -8,7 +9,7 @@ export interface ChatWidgetDeps {
   submitEventHandler: (
     e: WidgetEvent<string>,
     appendMessageTo: HTMLElement
-  ) => Promise<void>;
+  ) => Promise<HTMLElement>;
   toggleEventHandler: (
     container: HTMLElement,
     innerContent: HTMLElement
@@ -24,11 +25,13 @@ export class ChatGPTWidget extends HTMLElement {
     this: HTMLElement,
     e: WidgetEvent<string>,
     appendMessageTo: HTMLElement
-  ) => void;
+  ) => Promise<HTMLElement>;
   readonly toggleEventHandler: (
     container: HTMLElement,
     innerContent: HTMLElement
   ) => void;
+
+  readonly history: Message[] = [];
 
   constructor({
     containerRender,

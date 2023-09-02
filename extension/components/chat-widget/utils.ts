@@ -99,6 +99,8 @@ export function submitEventHandlerProvider({
       const messageContainer = messageElement.parentElement as HTMLElement;
       messageContainer.scrollTop = messageContainer.scrollHeight;
     });
+
+    return messageElement;
   };
 }
 
