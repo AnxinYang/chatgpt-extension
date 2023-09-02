@@ -93,11 +93,6 @@ export class ChatGPTWidget extends HTMLElement {
     this.chatResponseStreamer = chatResponseStreamer;
   }
 
-  //Close the widget
-  close() {
-    this.remove();
-  }
-
   // Toggle the widget
   toggle() {
     const container = this.container;

@@ -46,7 +46,7 @@ export function buttonsRenderProvider({}: ButtonsRenderDeps): (
       background: "rgb(141, 44, 44)",
     });
     closeButton.textContent = "X";
-    closeButton.addEventListener("click", widget.close);
+    closeButton.addEventListener("click", widget.remove.bind(widget));
 
     container.appendChild(toggleButton);
     container.appendChild(closeButton);
