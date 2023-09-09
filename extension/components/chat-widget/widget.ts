@@ -229,6 +229,7 @@ export class ChatGPTWidget extends HTMLElement {
   }
 
   setStyle() {
+  setStyle() {
     const style = document.createElement("style");
     style.textContent = `
       * {
@@ -240,8 +241,17 @@ export class ChatGPTWidget extends HTMLElement {
 
       *::-webkit-scrollbar-track {
         background-color: var(--scrollbar-track-color, transparent);
+      *::-webkit-scrollbar {
+        width: 0px;
+      }
+
+      *::-webkit-scrollbar-track {
+        background-color: var(--scrollbar-track-color, transparent);
         border-radius: 4px;
       }
+
+      *::-webkit-scrollbar-thumb {
+        background-color: var(--scrollbar-thumb-color, #888);
 
       *::-webkit-scrollbar-thumb {
         background-color: var(--scrollbar-thumb-color, #888);
@@ -251,10 +261,18 @@ export class ChatGPTWidget extends HTMLElement {
       *::-webkit-scrollbar-thumb:hover {
         background-color: var(--scrollbar-thumb-hover-color, #555);
       }
+
+      *::-webkit-scrollbar-thumb:hover {
+        background-color: var(--scrollbar-thumb-hover-color, #555);
+      }
+      `;
+    this.shadowRoot?.appendChild(style);
       `;
     this.shadowRoot?.appendChild(style);
   }
   connectedCallback() {
+    this.render();
+    this.setStyle();
     this.render();
     this.setStyle();
   }
