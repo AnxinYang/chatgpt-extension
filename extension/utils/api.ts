@@ -1,4 +1,6 @@
-import { Message, generateMessages, generateRetryMessages } from "./prompt";
+import { generateMessage } from "history/message";
+import { getStringTokenSize } from "./system/get-tokenized-string";
+import { Message } from "./types";
 
 export interface ChatGPTChunk {
   id: string;
@@ -49,7 +51,7 @@ const readMessagesFromStreamData = (data: string): string => {
 const requestChatCompletion = async (
   messages: Message[],
   onMessage: (message: string) => void
-): Promise<string> => {
+): Promise<Message> => {
   const response = await fetch(apiEndpoint, {
     method: "POST",
     headers: {
@@ -75,21 +77,17 @@ const requestChatCompletion = async (
     onMessage(message);
   }
 
-  return newMessage;
-};
-
-export const retryChatCompletion = async (
-  onMessage: (message: string) => void
-): Promise<string> => {
-  const messages = generateRetryMessages();
-  return await requestChatCompletion(messages, onMessage);
+  return generateMessage(
+    "assistant",
+    newMessage,
+    getStringTokenSize(newMessage)
+  );
 };
 
 export const getChatCompletion = async (
-  message: string,
+  messages: Message[],
   onMessage: (message: string) => void
-): Promise<string> => {
-  const messages = generateMessages(message);
+): Promise<Message> => {
   return await requestChatCompletion(messages, onMessage);
 };
 

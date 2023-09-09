@@ -1,54 +1,29 @@
-import { Role } from "utils/types";
+import { Message } from "utils/types";
 
-export class ChatGPTMessage extends HTMLElement {
-  readonly message: string;
-  readonly type: Role;
-  readonly container = document.createElement("div");
+export function messageRender({ role, content }: Message): HTMLElement {
+  const container = document.createElement("div");
+  const isUser = role === "user";
 
-  constructor(message: string = "", type: Role = "user") {
-    super();
-    this.message = message;
-    this.type = type;
+  container.innerText = content;
+  container.style.cssText = `
+    padding: 0.5em 12px;
+    margin: 0.75em 0;
+    border-radius: 12px;
+    background-color: ${isUser ? "#4285f4" : "#ccc"};
+    color: ${isUser ? "#ffffff" : "#000000"};
+    white-space: pre-wrap;
+    overflow-wrap: break-word;
+  `;
 
-    // Attach a shadow root to the custom element
-    const shadow = this.attachShadow({ mode: "open" });
+  const animation = container.animate(
+    [
+      { opacity: 0, transform: "translateX(10px)" },
+      { opacity: 1, transform: "translateX(0px)" },
+    ],
+    {
+      duration: 200,
+    }
+  );
 
-    // Create the message div
-    const container = this.container;
-    container.style.cssText = `
-      padding: 5px 10px;
-      margin: 0.5em 0;
-      border-radius: 4px;
-      background-color: ${type === "user" ? "#4285f4" : "#ccc"};
-      color: ${type === "user" ? "#ffffff" : "#000000"};
-      white-space: pre-wrap;
-    `;
-    container.setAttribute("aria-label", `Message from ${type}`);
-
-    const style = document.createElement("style");
-    style.textContent = `
-      * {
-        box-sizing: border-box;
-      }
-    `;
-
-    // Inject the message div into the shadow root
-    shadow.appendChild(container);
-    shadow.appendChild(style);
-  }
-
-  connectedCallback() {
-    this.container.textContent = this.message;
-  }
-
-  resetText(str: string = "") {
-    this.container.textContent = str;
-  }
-
-  appendText(str: string) {
-    this.container.textContent += str;
-  }
+  return container;
 }
-
-// Define the custom message element
-customElements.define("chatgpt-message", ChatGPTMessage);

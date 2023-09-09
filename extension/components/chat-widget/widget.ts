@@ -1,149 +1,225 @@
-import { clearHistory } from "utils/prompt";
-import { ChatGPTResponse } from "./response";
+import { Role, Message } from "utils/types";
+import { WidgetEvent, WidgetEventType, widgetEvent } from "./utils";
+import { generateMessage } from "history/message";
+import { MAX_INPUT_TOKENS } from "utils/constants";
+
+export interface IChatHistoryManager {
+  addMessage(message: Message): Promise<void>;
+  getMessages(): Message[];
+  getTokenUsage(): number;
+  getTokenUsageInPercentage(): string;
+  deleteLastMessage(): void;
+}
+
+export interface ChatWidgetDeps {
+  containerRender: () => HTMLElement;
+  buttonsRender: (widget: ChatGPTWidget) => HTMLElement;
+  conversationRender: () => HTMLElement;
+  messageRender: (message: Message) => HTMLElement;
+  inputRender: (widget: ChatGPTWidget) => HTMLElement;
+  tokenUsageRender: (widget: ChatGPTWidget) => HTMLElement;
+  donationInfoRender: (widget: ChatGPTWidget) => HTMLElement;
+  toggleAnimater: (container: HTMLElement, innerContent: HTMLElement) => void;
+  historyManager: IChatHistoryManager;
+  systemMessages: Message[];
+  pageContent: Message;
+  tokenCounter: (str: string) => number;
+  chatResponseStreamer: (
+    messages: Message[],
+    onMessage: (str: string) => void
+  ) => Promise<Message>;
+}
 
 export class ChatGPTWidget extends HTMLElement {
-  readonly container = document.createElement("div");
-  readonly contents = document.createElement("div");
-  readonly buttons = document.createElement("div");
-  readonly ads = document.createElement("div");
+  readonly containerRender: () => HTMLElement;
+  readonly buttonsRender: (widget: ChatGPTWidget) => HTMLElement;
+  readonly conversationRender: () => HTMLElement;
+  readonly inputRender: (widget: ChatGPTWidget) => HTMLElement;
+  readonly messageRender: (message: Message) => HTMLElement;
+  readonly donationInfoRender: (widget: ChatGPTWidget) => HTMLElement;
+  readonly tokenUsageRender: (widget: ChatGPTWidget) => HTMLElement;
+  readonly toggleAnimater: (
+    container: HTMLElement,
+    innerContent: HTMLElement
+  ) => void;
+  readonly historyManager: IChatHistoryManager;
+  readonly systemMessages: Message[];
+  readonly pageContent: Message;
 
-  constructor(
-    options: { position?: string; color?: string; size?: string } = {}
-  ) {
+  readonly tokenCounter: (str: string) => number;
+  readonly chatResponseStreamer: (
+    messages: Message[],
+    onMessage: (str: string) => void
+  ) => Promise<Message>;
+
+  readonly history: Message[] = [];
+  readonly messageToElementMap = new Map<Message, HTMLElement>();
+
+  isWaiting = false;
+
+  container: HTMLElement | null = null;
+  buttons: HTMLElement | null = null;
+  conversation: HTMLElement | null = null;
+  input: HTMLElement | null = null;
+  tokenUsage: HTMLElement | null = null;
+  donation: HTMLElement | null = null;
+
+  constructor({
+    containerRender,
+    buttonsRender,
+    conversationRender,
+    inputRender,
+    messageRender,
+    tokenUsageRender,
+    donationInfoRender,
+    toggleAnimater,
+    historyManager,
+    systemMessages,
+    pageContent,
+    tokenCounter,
+    chatResponseStreamer,
+  }: ChatWidgetDeps) {
     super();
+    this.containerRender = containerRender;
+    this.buttonsRender = buttonsRender;
+    this.conversationRender = conversationRender;
+    this.inputRender = inputRender;
+    this.messageRender = messageRender;
+    this.tokenUsageRender = tokenUsageRender;
+    this.donationInfoRender = donationInfoRender;
 
-    // Attach a shadow root to the custom element
-    this.attachShadow({ mode: "open" });
+    this.toggleAnimater = toggleAnimater;
+    this.historyManager = historyManager;
+    this.systemMessages = systemMessages;
+    this.pageContent = pageContent;
+    this.tokenCounter = tokenCounter;
+    this.chatResponseStreamer = chatResponseStreamer;
+  }
 
+  // Toggle the widget
+  toggle() {
+    const container = this.container;
+    const innerContent = this.buttons;
+    if (container && innerContent) {
+      this.toggleAnimater(container, innerContent);
+    }
+  }
+
+  // Handle user input
+  async handleUserInput(input: string, callback?: () => void) {
+    if (!input) {
+      callback && callback();
+      return;
+    }
+
+    if (this.isWaiting) {
+      callback && callback();
+      return;
+    }
+
+    // Block user input if it is waiting for response.
+    this.isWaiting = true;
+
+    const userMessage = generateMessage(
+      "user",
+      input,
+      this.tokenCounter(input)
+    );
+
+    // Render user message
+    const userMessageElement = this.messageRender(userMessage);
+    this.conversation?.appendChild(userMessageElement);
+    this.conversation!.scrollTop = this.conversation!.scrollHeight;
+
+    // Add user message to history
+    await this.historyManager.addMessage(userMessage);
+
+    // Get response from API
+    const history = this.historyManager.getMessages();
+
+    // Render a placeholder message
+    const responseMessageElement = this.messageRender({
+      role: "assistant",
+      content: "...",
+      tokenUsage: 0,
+    });
+    this.conversation?.appendChild(responseMessageElement);
+
+    // Render response
+    let isFirstStream = true;
+    const response = await this.chatResponseStreamer(
+      [...this.systemMessages, this.pageContent, ...history],
+      (str) => {
+        if (isFirstStream) {
+          isFirstStream = false;
+          responseMessageElement.textContent = "";
+        }
+        responseMessageElement.textContent += str;
+        this.conversation!.scrollTop = this.conversation!.scrollHeight;
+      }
+    );
+
+    // Add response to history
+    await this.historyManager.addMessage(response);
+    this.tokenUsage!.textContent = `Memory: ${this.historyManager.getTokenUsageInPercentage()}`;
+
+    // Unblock user input
+    this.isWaiting = false;
+    callback && callback();
+  }
+
+  render() {
+    const shadow = this.attachShadow({ mode: "open" });
+    this.container = this.containerRender();
+    this.buttons = this.buttonsRender(this);
+    this.conversation = this.conversationRender();
+    this.input = this.inputRender(this);
+    this.tokenUsage = this.tokenUsageRender(this);
+    this.donation = this.donationInfoRender(this);
+    const content = document.createElement("div");
+    content.style.cssText = `
+      padding: 10px;
+      transform-origin: top right;
+    `;
+
+    shadow.appendChild(this.container);
+    content.appendChild(this.buttons);
+    content.appendChild(this.conversation);
+    content.appendChild(this.input);
+    content.appendChild(this.tokenUsage);
+    content.appendChild(this.donation);
+    this.container.appendChild(content);
+  }
+
+  setStyle() {
     const style = document.createElement("style");
     style.textContent = `
       * {
         box-sizing: border-box;
       }
-      * button {
-        cursor: pointer;
-        border: none;
-        color: white;
-        background: #6e6e80;
-        border-radius: 4px;
+      *::-webkit-scrollbar {
+        width: 0px;
       }
-      #chatgpt-container[data-hidden="true"] #my-ads{
-        display: none;
-      }
-      #chatgpt-container[data-hidden="true"] #chatgpt-contents{
-        display: none;
-      }
-      #chatgpt-container[data-hidden="true"] #clear-button{
-        display: none;
-      }
-      #chatgpt-container {
-        position: ${options.position ?? "fixed"};
-        bottom: 20px;
-        right: 20px;
-        width: ${options.size ?? "fit-content"};
-        height: ${options.size ?? "fit-content"};
-        background-color: ${options.color ?? "rgb(53 55 64 / 70%)"};
-        backdrop-filter: blur(5px);
-        -webkit-backdrop-filter: blur(5px); /* For Safari */
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        border-radius: 4px;
-        padding: 10px;
-        z-index: 99999;
-      }
-    `;
-    if (!this.shadowRoot) return;
-    this.shadowRoot.appendChild(style);
-  }
 
+      *::-webkit-scrollbar-track {
+        background-color: var(--scrollbar-track-color, transparent);
+        border-radius: 4px;
+      }
+
+      *::-webkit-scrollbar-thumb {
+        background-color: var(--scrollbar-thumb-color, #888);
+        border-radius: 4px;
+      }
+
+      *::-webkit-scrollbar-thumb:hover {
+        background-color: var(--scrollbar-thumb-hover-color, #555);
+      }
+      `;
+    this.shadowRoot?.appendChild(style);
+  }
   connectedCallback() {
-    if (!this.shadowRoot) return;
-    this.shadowRoot.appendChild(this.container);
-
-    this.container.appendChild(this.buttons);
-    this.container.appendChild(this.contents);
-    this.container.appendChild(this.ads);
-    this.setupContainer();
-    this.setupContents();
-    this.setupButtons();
-    this.setupAds();
-  }
-
-  setupContainer() {
-    this.container.id = "chatgpt-container";
-    this.container.setAttribute("aria-label", "Chat widget");
-  }
-
-  setupAds() {
-    this.ads.id = "my-ads";
-    this.ads.style.width = "100%";
-    this.ads.style.fontSize = "0.75em";
-    this.ads.style.marginTop = "10px";
-    const buyMeACoffee = document.createElement("a");
-    buyMeACoffee.setAttribute(
-      "href",
-      "https://www.buymeacoffee.com/anxinyang1E"
-    );
-    buyMeACoffee.setAttribute("target", "_blank");
-
-    buyMeACoffee.style.color = "#eee";
-    buyMeACoffee.innerText = "Buy me a coffee, if you like this project.";
-
-    this.ads.appendChild(buyMeACoffee);
-  }
-
-  setupButtons() {
-    this.buttons.style.display = "flex";
-    this.buttons.style.justifyContent = "flex-end";
-    this.buttons.style.marginBottom = "10px";
-    this.buttons.style.gap = "10px";
-
-    const toggle = document.createElement("button");
-    toggle.setAttribute("aria-label", "Toggle chat widget visibility");
-    this.container.setAttribute("data-hidden", "true");
-    toggle.textContent = "+";
-    toggle.addEventListener("click", () => {
-      const isHidden = this.container.getAttribute("data-hidden") === "true";
-      toggle.textContent = !isHidden ? "+" : "-";
-      this.container.setAttribute("data-hidden", isHidden ? "false" : "true");
-    });
-
-    // Add a clear button to clear the chat history.
-    const clear = document.createElement("button");
-    clear.setAttribute("aria-label", "Clear chat history");
-    clear.id = "clear-button";
-    clear.textContent = "Clear";
-    clear.addEventListener("click", () => {
-      const responses = this.container.querySelector(
-        "chatgpt-response"
-      ) as ChatGPTResponse;
-      responses?.clear();
-      clearHistory();
-    });
-
-    // Add a button to remove the chat widget.
-    const remove = document.createElement("button");
-    remove.setAttribute("aria-label", "Remove chat widget");
-    remove.textContent = "X";
-    remove.style.background = "#8d2c2c";
-    remove.addEventListener("click", () => {
-      this.container.remove();
-    });
-
-    // this.buttons.appendChild(clear);
-    this.buttons.appendChild(toggle);
-    this.buttons.appendChild(remove);
-  }
-
-  setupContents() {
-    this.contents.id = "chatgpt-contents";
-    this.contents.style.width = "400px";
-    this.contents.style.maxWidth = "100%";
-    this.contents.style.transition = "transform 0.3s ease-in-out";
-  }
-
-  appendComponent(component: HTMLElement) {
-    if (!this.shadowRoot) return;
-    this.contents.appendChild(component);
+    this.render();
+    this.setStyle();
   }
 }
 

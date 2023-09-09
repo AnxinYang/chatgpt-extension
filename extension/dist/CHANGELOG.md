@@ -1,3 +1,6 @@
+### Update 2.0.0
+- New codebase.
+
 ### Update 1.2.5
 - Fixed a minor bug.
 - Fixed the order of memory.
