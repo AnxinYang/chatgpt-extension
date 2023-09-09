@@ -35,7 +35,7 @@ export function toggleAnimater(
   const containerOpenRect = container.getBoundingClientRect();
   const innerContentOpenRect = innerContent.getBoundingClientRect();
   const animationOptions = {
-    duration: 200,
+    duration: 100,
     easing: "ease-in-out",
   };
 
