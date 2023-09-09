@@ -1,5 +1,7 @@
-import { getChatCompletion } from "utils/api";
+import { getChatCompletion, getChatSummary } from "utils/api";
 import { generateKeyframes } from "./styles";
+import { Message } from "utils/types";
+import { getStringTokenSize } from "utils/system/get-tokenized-string";
 
 export interface WidgetEvent<BodyT = undefined> extends CustomEvent {
   detail: BodyT;
@@ -66,4 +68,15 @@ export function toggleAnimater(
 
   container.setAttribute("data-open", isOpened ? "false" : "true");
   console.log("toggleEventHandler");
+}
+
+export async function historySummrizer(history: Message[]): Promise<Message> {
+  const summary = (await getChatSummary(history)) ?? "no summary";
+  const content = `Here is the summary of previous conversation:\n ${summary}`;
+  const message: Message = {
+    role: "system",
+    content,
+    tokenUsage: getStringTokenSize(content),
+  };
+  return message;
 }

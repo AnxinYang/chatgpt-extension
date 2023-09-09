@@ -4,7 +4,7 @@ import { containerRenderProvider } from "./container";
 import { conversationRenderProvider } from "./conversation";
 import { inputRenderProvider } from "./input";
 import { messageRender } from "./message";
-import { toggleAnimater } from "./utils";
+import { historySummrizer, toggleAnimater } from "./utils";
 import { ChatGPTWidget } from "./widget";
 import { MAX_MEMORY_TOKENS } from "utils/constants";
 import { getStringTokenSize } from "utils/system/get-tokenized-string";
@@ -33,13 +33,7 @@ const chatWidget = new ChatGPTWidget({
   pageContent: getPageContent(),
   historyManager: new ChatHistoryManager({
     tokenLimit: MAX_MEMORY_TOKENS,
-    historySummrizer: async (history) => {
-      return {
-        role: "system",
-        content: "Summary",
-        tokenUsage: 1,
-      };
-    },
+    historySummrizer,
   }),
 });
 
