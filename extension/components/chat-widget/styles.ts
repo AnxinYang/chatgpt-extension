@@ -43,7 +43,7 @@ export function generateKeyframes(
     const x = startX + (endX - startX) * t;
     const y = startY + (endY - startY) * t;
     keyframes.push({
-      transform: `translate(${startX}px, ${y}px) scale(${startScaleX}, ${scaleY})`,
+      transform: `translate(${x}px, ${y}px) scale(${scaleX}, ${scaleY})`,
     });
 
     const innerScaleX =
@@ -54,32 +54,9 @@ export function generateKeyframes(
     const innerY = innerStartY + (innerEndY - innerStartY) * t;
 
     childElementKeyframes.push({
-      transform: `translate(${-startX}px, ${-y}px)  translate(${innerStartX}px, ${innerY}px) scale(${
-        1 / startScaleX
-      }, ${1 / scaleY})`,
-    });
-  }
-  for (let i = 0; i <= steps; i++) {
-    const t = i / steps;
-    const scaleX = startScaleX + (endScaleX - startScaleX) * t;
-    const scaleY = startScaleY + (endScaleY - startScaleY) * t;
-    const x = startX + (endX - startX) * t;
-    const y = startY + (endY - startY) * t;
-    keyframes.push({
-      transform: `translate(${x}px, ${0}px) scale(${scaleX}, ${1})`,
-    });
-
-    const innerScaleX =
-      innerStartScaleX + (innerEndScaleX - innerStartScaleX) * t;
-    const innerScaleY =
-      innerStartScaleY + (innerEndScaleY - innerStartScaleY) * t;
-    const innerX = innerStartX + (innerEndX - innerStartX) * t;
-    const innerY = innerStartY + (innerEndY - innerStartY) * t;
-
-    childElementKeyframes.push({
-      transform: `translate(${-x}px, ${0}px)  translate(${innerX}px, ${0}px) scale(${
+      transform: `translate(${-x}px, ${-y}px)  translate(${innerX}px, ${innerY}px) scale(${
         1 / scaleX
-      }, ${1 / 1})`,
+      }, ${1 / scaleY})`,
     });
   }
   return [keyframes, childElementKeyframes] as const;

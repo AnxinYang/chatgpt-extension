@@ -1,5 +1,3 @@
-import { WidgetEvent, WidgetEventType } from "./utils";
-
 export interface ConversationRenderDeps {}
 
 export function conversationRenderProvider({}: ConversationRenderDeps): () => HTMLElement {

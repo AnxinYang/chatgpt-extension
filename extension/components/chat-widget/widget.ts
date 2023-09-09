@@ -1,6 +1,7 @@
 import { Role, Message } from "utils/types";
 import { WidgetEvent, WidgetEventType, widgetEvent } from "./utils";
 import { generateMessage } from "history/message";
+import { MAX_INPUT_TOKENS } from "utils/constants";
 
 export interface IChatHistoryManager {
   addMessage(message: Message): Promise<void>;
@@ -54,6 +55,8 @@ export class ChatGPTWidget extends HTMLElement {
   readonly history: Message[] = [];
   readonly messageToElementMap = new Map<Message, HTMLElement>();
 
+  isWaiting = false;
+
   container: HTMLElement | null = null;
   buttons: HTMLElement | null = null;
   conversation: HTMLElement | null = null;
@@ -103,7 +106,20 @@ export class ChatGPTWidget extends HTMLElement {
   }
 
   // Handle user input
-  async handleUserInput(input: string) {
+  async handleUserInput(input: string, callback?: () => void) {
+    if (!input) {
+      callback && callback();
+      return;
+    }
+
+    if (this.isWaiting) {
+      callback && callback();
+      return;
+    }
+
+    // Block user input if it is waiting for response.
+    this.isWaiting = true;
+
     const userMessage = generateMessage(
       "user",
       input,
@@ -146,6 +162,10 @@ export class ChatGPTWidget extends HTMLElement {
     // Add response to history
     await this.historyManager.addMessage(response);
     this.tokenUsage!.textContent = `Memory: ${this.historyManager.getTokenUsageInPercentage()}`;
+
+    // Unblock user input
+    this.isWaiting = false;
+    callback && callback();
   }
 
   render() {
