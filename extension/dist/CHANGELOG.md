@@ -1,3 +1,7 @@
+### Update 2.1.0
+- Added back retry button.
+- Fixed summary implementation.
+
 ### Update 2.0.0
 - New codebase.
 

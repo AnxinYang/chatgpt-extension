@@ -15,6 +15,7 @@ export interface ChatWidgetDeps {
   containerRender: () => HTMLElement;
   buttonsRender: (widget: ChatGPTWidget) => HTMLElement;
   conversationRender: () => HTMLElement;
+  retryButtonRender: (widget: ChatGPTWidget) => HTMLElement;
   messageRender: (message: Message) => HTMLElement;
   inputRender: (widget: ChatGPTWidget) => HTMLElement;
   tokenUsageRender: (widget: ChatGPTWidget) => HTMLElement;
@@ -34,6 +35,7 @@ export class ChatGPTWidget extends HTMLElement {
   readonly containerRender: () => HTMLElement;
   readonly buttonsRender: (widget: ChatGPTWidget) => HTMLElement;
   readonly conversationRender: () => HTMLElement;
+  readonly retryButtonRender: (widget: ChatGPTWidget) => HTMLElement;
   readonly inputRender: (widget: ChatGPTWidget) => HTMLElement;
   readonly messageRender: (message: Message) => HTMLElement;
   readonly donationInfoRender: (widget: ChatGPTWidget) => HTMLElement;
@@ -60,6 +62,7 @@ export class ChatGPTWidget extends HTMLElement {
   container: HTMLElement | null = null;
   buttons: HTMLElement | null = null;
   conversation: HTMLElement | null = null;
+  retryButton: HTMLElement | null = null;
   input: HTMLElement | null = null;
   tokenUsage: HTMLElement | null = null;
   donation: HTMLElement | null = null;
@@ -68,6 +71,7 @@ export class ChatGPTWidget extends HTMLElement {
     containerRender,
     buttonsRender,
     conversationRender,
+    retryButtonRender,
     inputRender,
     messageRender,
     tokenUsageRender,
@@ -83,6 +87,7 @@ export class ChatGPTWidget extends HTMLElement {
     this.containerRender = containerRender;
     this.buttonsRender = buttonsRender;
     this.conversationRender = conversationRender;
+    this.retryButtonRender = retryButtonRender;
     this.inputRender = inputRender;
     this.messageRender = messageRender;
     this.tokenUsageRender = tokenUsageRender;
@@ -105,21 +110,21 @@ export class ChatGPTWidget extends HTMLElement {
     }
   }
 
-  // Handle user input
-  async handleUserInput(input: string, callback?: () => void) {
-    if (!input) {
-      callback && callback();
-      return;
+  async retry() {
+    // Remove last message from history.
+    this.historyManager.deleteLastMessage();
+
+    // Remove last message from conversation.
+    const lastMessage = this.conversation?.lastElementChild;
+    if (lastMessage) {
+      this.conversation?.removeChild(lastMessage);
     }
 
-    if (this.isWaiting) {
-      callback && callback();
-      return;
-    }
+    // Request chat completion
+    this.requestChatCompletion();
+  }
 
-    // Block user input if it is waiting for response.
-    this.isWaiting = true;
-
+  async addUserInputToHistory(input: string) {
     const userMessage = generateMessage(
       "user",
       input,
@@ -133,9 +138,17 @@ export class ChatGPTWidget extends HTMLElement {
 
     // Add user message to history
     await this.historyManager.addMessage(userMessage);
+  }
 
-    // Get response from API
+  async requestChatCompletion() {
+    // Block user input if it is waiting for response.
+    this.isWaiting = true;
+
+    // Get history
     const history = this.historyManager.getMessages();
+
+    // Hide retry button
+    this.retryButton!.style.display = "none";
 
     // Render a placeholder message
     const responseMessageElement = this.messageRender({
@@ -163,8 +176,30 @@ export class ChatGPTWidget extends HTMLElement {
     await this.historyManager.addMessage(response);
     this.tokenUsage!.textContent = `Memory: ${this.historyManager.getTokenUsageInPercentage()}`;
 
+    // Display retry button
+    this.retryButton!.style.display = "block";
+
     // Unblock user input
     this.isWaiting = false;
+  }
+
+  // Handle user input
+  async handleUserInput(input: string, callback?: () => void) {
+    if (!input) {
+      callback && callback();
+      return;
+    }
+
+    if (this.isWaiting) {
+      callback && callback();
+      return;
+    }
+
+    // Add user input to history
+    this.addUserInputToHistory(input);
+
+    this.requestChatCompletion();
+
     callback && callback();
   }
 
@@ -173,6 +208,7 @@ export class ChatGPTWidget extends HTMLElement {
     this.container = this.containerRender();
     this.buttons = this.buttonsRender(this);
     this.conversation = this.conversationRender();
+    this.retryButton = this.retryButtonRender(this);
     this.input = this.inputRender(this);
     this.tokenUsage = this.tokenUsageRender(this);
     this.donation = this.donationInfoRender(this);
@@ -185,12 +221,14 @@ export class ChatGPTWidget extends HTMLElement {
     shadow.appendChild(this.container);
     content.appendChild(this.buttons);
     content.appendChild(this.conversation);
+    content.appendChild(this.retryButton);
     content.appendChild(this.input);
     content.appendChild(this.tokenUsage);
     content.appendChild(this.donation);
     this.container.appendChild(content);
   }
 
+  setStyle() {
   setStyle() {
     const style = document.createElement("style");
     style.textContent = `
@@ -203,8 +241,17 @@ export class ChatGPTWidget extends HTMLElement {
 
       *::-webkit-scrollbar-track {
         background-color: var(--scrollbar-track-color, transparent);
+      *::-webkit-scrollbar {
+        width: 0px;
+      }
+
+      *::-webkit-scrollbar-track {
+        background-color: var(--scrollbar-track-color, transparent);
         border-radius: 4px;
       }
+
+      *::-webkit-scrollbar-thumb {
+        background-color: var(--scrollbar-thumb-color, #888);
 
       *::-webkit-scrollbar-thumb {
         background-color: var(--scrollbar-thumb-color, #888);
@@ -214,10 +261,18 @@ export class ChatGPTWidget extends HTMLElement {
       *::-webkit-scrollbar-thumb:hover {
         background-color: var(--scrollbar-thumb-hover-color, #555);
       }
+
+      *::-webkit-scrollbar-thumb:hover {
+        background-color: var(--scrollbar-thumb-hover-color, #555);
+      }
+      `;
+    this.shadowRoot?.appendChild(style);
       `;
     this.shadowRoot?.appendChild(style);
   }
   connectedCallback() {
+    this.render();
+    this.setStyle();
     this.render();
     this.setStyle();
   }
