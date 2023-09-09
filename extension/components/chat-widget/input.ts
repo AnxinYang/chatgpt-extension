@@ -30,12 +30,13 @@ export function inputRenderProvider({}: InputRenderDeps) {
 
     const updateInputStyle = (isBlocked: boolean) => {
       if (isBlocked) {
-        input.placeholder = "Pending...";
+        debugger;
+        input.setAttribute("placeholder", "Waiting for response...");
         input.disabled = true;
         button.disabled = true;
         button.style.backgroundColor = "rgb(64, 65, 79)";
       } else {
-        input.placeholder = "Type a message...";
+        input.setAttribute("placeholder", "Type a message...");
         input.disabled = false;
         button.disabled = false;
         button.style.backgroundColor = "#4285f4";

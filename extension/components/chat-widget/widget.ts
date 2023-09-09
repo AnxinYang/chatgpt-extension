@@ -196,9 +196,9 @@ export class ChatGPTWidget extends HTMLElement {
     }
 
     // Add user input to history
-    this.addUserInputToHistory(input);
+    await this.addUserInputToHistory(input);
 
-    this.requestChatCompletion();
+    await this.requestChatCompletion();
 
     callback && callback();
   }
@@ -228,7 +228,6 @@ export class ChatGPTWidget extends HTMLElement {
     this.container.appendChild(content);
   }
 
-  setStyle() {
   setStyle() {
     const style = document.createElement("style");
     style.textContent = `
@@ -267,9 +266,8 @@ export class ChatGPTWidget extends HTMLElement {
       }
       `;
     this.shadowRoot?.appendChild(style);
-      `;
-    this.shadowRoot?.appendChild(style);
   }
+
   connectedCallback() {
     this.render();
     this.setStyle();

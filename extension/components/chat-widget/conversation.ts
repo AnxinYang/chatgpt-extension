@@ -9,6 +9,7 @@ export function conversationRenderProvider({}: ConversationRenderDeps): () => HT
         overflow-y: auto;
         overflow-x: hidden;
         max-height: 50vh;
+        min-width: 200px;
         width: 600px;
         max-width: 30vw;
         border-radius: 12px;

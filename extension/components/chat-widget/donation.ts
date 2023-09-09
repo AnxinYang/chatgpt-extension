@@ -13,7 +13,7 @@ export function donationInfoRender(widget: ChatGPTWidget) {
   });
   container.setAttribute("href", "https://www.buymeacoffee.com/anxinyang1e");
   container.setAttribute("target", "_blank");
-  container.textContent = "Buy me a coffee! If you like this widget.";
+  container.textContent = "Buy me a coffee.";
 
   return container;
 }
