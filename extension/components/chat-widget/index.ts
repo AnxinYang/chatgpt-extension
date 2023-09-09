@@ -13,12 +13,14 @@ import { getSystemMsgs } from "utils/system/get-system-msgs";
 import { getPageContent } from "utils/page/get-page-content";
 import { tokenUsageRender } from "./usage";
 import { donationInfoRender } from "./donation";
+import { retryButtonRender } from "./retry";
 
 // Create the custom element
 const chatWidget = new ChatGPTWidget({
   containerRender: containerRenderProvider({}),
   buttonsRender: buttonsRenderProvider({}),
   conversationRender: conversationRenderProvider({}),
+  retryButtonRender,
   inputRender: inputRenderProvider({}),
   messageRender,
   tokenUsageRender,
