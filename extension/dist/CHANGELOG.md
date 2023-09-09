@@ -1,3 +1,7 @@
+### Update 2.1.1
+- Minor bug fixes.
+- Style adjustments.
+
 ### Update 2.1.0
 - Added back retry button.
 - Fixed summary implementation.
